@@ -61,11 +61,38 @@ float getRand() {
     return rand() / (float)RAND_MAX;
 }
 
+//drawTable()
+//////////////////////////////////////////////////////////////
+//
+//	Draws the initial pinball table setup
+//
+////////////////////////////////////////////////////////////////////////////////
+void drawGrid() {
+	glPushMatrix(); {
+		glDisable( GL_LIGHTING );
+			glBegin(GL_LINES); {
+			for (int i = -50; i <= 50; i ++)
+				for (int j = -25; j <= 25; j ++) {
+					if( j % 5 == 0 && i % 5 == 0)
+						glColor3f( 1, 0, 0 );
+					else glColor3f( 1, 1, 1 );
+					glVertex3f(i, 0, -25);
+					glVertex3f(i, 0, 25);
+
+					glVertex3f(50, 0, j);
+					glVertex3f(-50, 0, j);
+				}
+			}; glEnd();
+		glEnable( GL_LIGHTING );
+	} glPopMatrix();
+}
 void generateEnvironmentDL() {
     environmentDL = glGenLists(1);
-    glNewList(environmentDL, GL_COMPILE);
-	
-    glEndList();
+    glNewList(environmentDL, GL_COMPILE); {
+		glPushMatrix(); {
+			drawGrid();
+		}; glPopMatrix();
+	}; glEndList();
 }
 
 // resizeWindow() //////////////////////////////////////////////////////////////
@@ -155,6 +182,11 @@ void renderScene(void) {
 	// update the modelview matrix based on the camera's position
 	glMatrixMode(GL_MODELVIEW);                           // make sure we aren't changing the projection matrix!
 	glLoadIdentity();
+	gluLookAt( 100, 30, 0,
+				0, 0, 0,
+				0, 1, 0 );
+	
+	glCallList( environmentDL );
 	
 	//push the back buffer to the screen
     glutSwapBuffers();
