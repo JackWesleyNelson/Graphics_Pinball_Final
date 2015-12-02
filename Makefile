@@ -22,7 +22,7 @@
 ########################################
 
 TARGET = Pinball
-OBJECTS = Main.o 
+OBJECTS = Main.o src/Object.o src/Material.o src/Point.o src/PointBase.o src/Vector.o
 
 LOCAL_INC_PATH = /Users/jpaone/Desktop/include
 LOCAL_LIB_PATH = /Users/jpaone/Desktop/lib

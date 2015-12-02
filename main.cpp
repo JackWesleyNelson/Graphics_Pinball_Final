@@ -35,6 +35,7 @@ using namespace std;
 
 
 // Headers We've Written
+#include "Object.h"
 
 
 // GLOBAL VARIABLES ////////////////////////////////////////////////////////////
@@ -51,6 +52,8 @@ int mouseX = 0, mouseY = 0;                 // last known X and Y of the mouse
 GLuint environmentDL;			
 
 GLint menuId;
+
+Object *table;
 
 // getRand() ///////////////////////////////////////////////////////////////////
 //
@@ -91,6 +94,17 @@ void generateEnvironmentDL() {
     glNewList(environmentDL, GL_COMPILE); {
 		glPushMatrix(); {
 			drawGrid();
+		}; glPopMatrix();
+		
+		glPushMatrix(); {
+			glColor3f( 0, 0, 1 );
+			glDisable( GL_LIGHTING );
+			glRotatef( 90, 0, 1, 0 );
+			glTranslatef( -25, -100, 50 );
+			glScalef( 90, 90, 90 );
+			table->draw();
+			glEnable( GL_LIGHTING );
+		glUseProgram( 0 );
 		}; glPopMatrix();
 	}; glEndList();
 }
@@ -315,6 +329,8 @@ int main( int argc, char **argv ) {
 
     // register callback functions...
     registerCallbacks();
+	
+	table = new Object( "table.obj" );
 	
     generateEnvironmentDL();
 
