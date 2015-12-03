@@ -61,7 +61,7 @@ Camera camera;
 Object *table;
 
 //Textures
-GLuint textures[1];
+GLuint textures[2];
 
 // getRand() ///////////////////////////////////////////////////////////////////
 //
@@ -72,7 +72,7 @@ float getRand() {
     return rand() / (float)RAND_MAX;
 }
 
-//drawTable()
+//drawGrid()
 //////////////////////////////////////////////////////////////
 //
 //	Draws the initial pinball table setup
@@ -84,9 +84,9 @@ void drawGrid() {
 			glBegin(GL_LINES); {
 			for (int i = -50; i <= 50; i ++)
 				for (int j = -25; j <= 25; j ++) {
-					if( j % 5 == 0 && i % 5 == 0)
+					/*if( j % 5 == 0 && i % 5 == 0)
 						glColor3f( 1, 0, 0 );
-					else glColor3f( 1, 1, 1 );
+					else glColor3f( 1, 1, 1 );*/
 					glVertex3f(i, 0, -25);
 					glVertex3f(i, 0, 25);
 
@@ -96,6 +96,82 @@ void drawGrid() {
 			}; glEnd();
 		glEnable( GL_LIGHTING );
 	} glPopMatrix();
+}
+
+//drawSky()
+//////////////////////////////////////////////////////////////
+//
+//	Draws the skybox
+//
+////////////////////////////////////////////////////////////////////////////////
+void drawSky() {
+	glPushMatrix(); {
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, textures[1]);
+		
+		GLUquadricObj *myQuad2 = gluNewQuadric();
+		glBegin(GL_QUADS); {
+			glNormal3f( 0.0f, 0.0f, 1.0f);
+			glTexCoord2f(0.33f, 0.33f);
+			glVertex3f(-300.0f, -300.0f, -300.0f);
+			glTexCoord2f(0.33f, 0.66f);
+			glVertex3f( -300.0f, 300.0f, -300.0f);
+			glTexCoord2f(0.0f, 0.66f);
+			glVertex3f( -300.0f,  300.0f, 300.0f);
+			glTexCoord2f(0.0f, 0.33f);
+			glVertex3f(-300.0f,  -300.0f, 300.0f);
+			
+			glNormal3f( 1.0f, 0.0f, 0.0f);
+			glTexCoord2f(0.33f, 0.33f);
+			glVertex3f(-300.0f, -300.0f, -300.0f);
+			glTexCoord2f(0.33f, 0.66f);
+			glVertex3f( -300.0f, 300.0f, -300.0f);
+			glTexCoord2f(0.5f, 0.66f);
+			glVertex3f( 300.0f, 300.0f, -300.0f);
+			glTexCoord2f(0.5f, 0.33f);
+			glVertex3f( 300.0f, -300.0f, -300.0f);
+			
+			glNormal3f( 0.0f, 0.0f, 1.0f);
+			glTexCoord2f(0.5f, 0.33f);
+			glVertex3f( 300.0f, -300.0f, -300.0f);
+			glTexCoord2f(0.5f, 0.66f);
+			glVertex3f( 300.0f, 300.0f, -300.0f);
+			glTexCoord2f(0.75f, 0.66f);
+			glVertex3f( 300.0f,  300.0f, 300.0f);
+			glTexCoord2f(0.75f, 0.33f);
+			glVertex3f( 300.0f,  -300.0f, 300.0f);
+			
+			glNormal3f( 0.0f, 0.0f, 1.0f);
+			glTexCoord2f(1.0f, 0.33f);
+			glVertex3f( -300.0f, -300.0f, 300.0f);
+			glTexCoord2f(1.0f, 0.66f);
+			glVertex3f( -300.0f, 300.0f, 300.0f);
+			glTexCoord2f(0.75f, 0.66f);
+			glVertex3f( 300.0f, 300.0f, 300.0f);
+			glTexCoord2f(0.75f, 0.33f);
+			glVertex3f( 300.0f, -300.0f, 300.0f);
+			
+			glNormal3f( 0.0f, -1.0f, 0.0f);
+			glTexCoord2f(0.5f, 1.0f);
+			glVertex3f( -300.0f, 300.0f, -300.0f);
+			glTexCoord2f(0.75f, 1.0f);
+			glVertex3f( -300.0f, 300.0f, 300.0f);
+			glTexCoord2f(0.75f, 0.66f);
+			glVertex3f( 300.0f, 300.0f, 300.0f);
+			glTexCoord2f(0.5f, 0.66f);
+			glVertex3f( 300.0f, 300.0f, -300.0f);
+			
+			glNormal3f( 0.0f, -1.0f, 0.0f);
+			glTexCoord2f(0.5f, 0.0f);
+			glVertex3f( -300.0f, -280.0f, -300.0f);
+			glTexCoord2f(0.75f, 0.0f);
+			glVertex3f( -300.0f, -280.0f, 300.0f);
+			glTexCoord2f(0.75f, 0.33f);
+			glVertex3f( 300.0f, -280.0f, 300.0f);
+			glTexCoord2f(0.5f, 0.33f);
+			glVertex3f( 300.0f, -280.0f, -300.0f);
+		}; glEnd();
+	}; glPopMatrix();
 }
 
 //generateEnvironmentDL()
@@ -108,6 +184,9 @@ void generateEnvironmentDL() {
     environmentDL = glGenLists(1);
     glNewList(environmentDL, GL_COMPILE); {
 		glPushMatrix(); {
+			glDisable( GL_LIGHTING );
+			drawSky();
+			glEnable( GL_LIGHTING );
 			glRotatef( -10, 0, 0, 1 );
 			drawGrid();
 		}; glPopMatrix();
@@ -367,6 +446,14 @@ int main( int argc, char **argv ) {
 	//Load Textures
 	textures[0] = SOIL_load_OGL_texture(
 		"textures/table_skin.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS
+		| SOIL_FLAG_INVERT_Y
+		| SOIL_FLAG_COMPRESS_TO_DXT );
+		
+	textures[1] = SOIL_load_OGL_texture(
+		"textures/skybox.png",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS
