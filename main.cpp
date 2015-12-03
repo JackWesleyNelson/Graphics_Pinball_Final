@@ -82,8 +82,8 @@ void drawGrid() {
 	glPushMatrix(); {
 		glDisable( GL_LIGHTING );
 			glBegin(GL_LINES); {
-			for (int i = -50; i <= 50; i ++)
-				for (int j = -25; j <= 25; j ++) {
+			for (int i = -50; i <= 50; i +=5)
+				for (int j = -25; j <= 25; j +=5) {
 					/*if( j % 5 == 0 && i % 5 == 0)
 						glColor3f( 1, 0, 0 );
 					else glColor3f( 1, 1, 1 );*/
@@ -171,6 +171,7 @@ void drawSky() {
 			glTexCoord2f(0.5f, 0.33f);
 			glVertex3f( 300.0f, -280.0f, -300.0f);
 		}; glEnd();
+		glDisable( GL_TEXTURE_2D );
 	}; glPopMatrix();
 }
 
@@ -184,16 +185,15 @@ void generateEnvironmentDL() {
     environmentDL = glGenLists(1);
     glNewList(environmentDL, GL_COMPILE); {
 		glPushMatrix(); {
-			glDisable( GL_LIGHTING );
+			//glDisable( GL_LIGHTING );
 			drawSky();
-			glEnable( GL_LIGHTING );
+			//glEnable( GL_LIGHTING );
 			glRotatef( -10, 0, 0, 1 );
 			drawGrid();
 		}; glPopMatrix();
 		
 		glPushMatrix(); {
-			//glColor3f( 0, 0, 1 );
-			glDisable( GL_LIGHTING );
+			//glDisable( GL_LIGHTING );
 			glEnable( GL_TEXTURE_2D );
 			glBindTexture(GL_TEXTURE_2D, textures[0]);
 			glRotatef( 90, 0, 1, 0 );
@@ -201,8 +201,8 @@ void generateEnvironmentDL() {
 			glScalef( 90, 90, 92 );
 			table->draw();
 			glDisable( GL_TEXTURE_2D );
-			glEnable( GL_LIGHTING );
-		glUseProgram( 0 );
+			//glEnable( GL_LIGHTING );
+			glUseProgram( 0 );
 		}; glPopMatrix();
 	}; glEndList();
 }
@@ -284,8 +284,15 @@ void initScene()  {
     glEnable( GL_COLOR_MATERIAL );
     glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
     //******************************************************************
-
-    glShadeModel(GL_FLAT);
+	
+	float lightCol[4] = { 1, 1, 1, 1};
+    float ambientCol[4] = {1.0, 1.0, 1.0, 1.0};
+    glLightfv( GL_LIGHT0,GL_DIFFUSE,lightCol );
+    glLightfv( GL_LIGHT0, GL_AMBIENT, ambientCol );
+    glEnable( GL_LIGHTING );
+    glEnable( GL_LIGHT0 );
+	//******************************************************************
+    glShadeModel(GL_SMOOTH);
 
     srand( time(NULL) );	// seed our random number generator
 	
