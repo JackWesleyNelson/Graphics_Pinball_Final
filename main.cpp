@@ -36,6 +36,7 @@ using namespace std;
 
 // Headers We've Written
 #include "Object.h"
+#include "Camera.h"
 
 
 // GLOBAL VARIABLES ////////////////////////////////////////////////////////////
@@ -53,7 +54,14 @@ GLuint environmentDL;
 
 GLint menuId;
 
+//Camera variables
+Camera camera;
+
+//Object Variables
 Object *table;
+
+//Textures
+GLuint textures[1];
 
 // getRand() ///////////////////////////////////////////////////////////////////
 //
@@ -89,20 +97,31 @@ void drawGrid() {
 		glEnable( GL_LIGHTING );
 	} glPopMatrix();
 }
+
+//generateEnvironmentDL()
+//////////////////////////////////////////////////////////////
+//
+//	Draws all static objects: table, grid, etc.
+//
+////////////////////////////////////////////////////////////////////////////////
 void generateEnvironmentDL() {
     environmentDL = glGenLists(1);
     glNewList(environmentDL, GL_COMPILE); {
 		glPushMatrix(); {
+			glRotatef( -10, 0, 0, 1 );
 			drawGrid();
 		}; glPopMatrix();
 		
 		glPushMatrix(); {
-			glColor3f( 0, 0, 1 );
+			//glColor3f( 0, 0, 1 );
 			glDisable( GL_LIGHTING );
+			glEnable( GL_TEXTURE_2D );
+			glBindTexture(GL_TEXTURE_2D, textures[0]);
 			glRotatef( 90, 0, 1, 0 );
-			glTranslatef( -25, -100, 50 );
-			glScalef( 90, 90, 90 );
+			glTranslatef( 16, -30, -45 );
+			glScalef( 90, 90, 92 );
 			table->draw();
+			glDisable( GL_TEXTURE_2D );
 			glEnable( GL_LIGHTING );
 		glUseProgram( 0 );
 		}; glPopMatrix();
@@ -158,6 +177,16 @@ void mouseCallback(int button, int state, int thisX, int thisY) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void mouseMotion(int x, int y) {
+	if(leftMouseButton == GLUT_DOWN && glutGetModifiers() == GLUT_ACTIVE_CTRL) {
+		camera.setRadius((mouseY - y)*.05);
+		camera.recomputeOrientation();
+	}
+    else if(leftMouseButton == GLUT_DOWN) {		// for the camera rotate
+        camera.setTheta((mouseX - x)*.005);
+		camera.setPhi((mouseY - y)*.005);
+		camera.recomputeOrientation();
+	}
+	
     mouseX = x;
     mouseY = y;
 }
@@ -180,6 +209,13 @@ void initScene()  {
     glShadeModel(GL_FLAT);
 
     srand( time(NULL) );	// seed our random number generator
+	
+	//Set Up Camera
+	camera = Camera();
+	camera.setTheta(M_PI / 2.0f);
+	camera.setPhi(M_PI / 1.7f);
+	camera.setRadius(100);
+	camera.recomputeOrientation();
 }
 
 // renderScene() ///////////////////////////////////////////////////////////////
@@ -196,9 +232,7 @@ void renderScene(void) {
 	// update the modelview matrix based on the camera's position
 	glMatrixMode(GL_MODELVIEW);                           // make sure we aren't changing the projection matrix!
 	glLoadIdentity();
-	gluLookAt( 100, 30, 0,
-				0, 0, 0,
-				0, 1, 0 );
+	camera.lookAt();
 	
 	glCallList( environmentDL );
 	
@@ -329,6 +363,15 @@ int main( int argc, char **argv ) {
 
     // register callback functions...
     registerCallbacks();
+	
+	//Load Textures
+	textures[0] = SOIL_load_OGL_texture(
+		"textures/table_skin.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS
+		| SOIL_FLAG_INVERT_Y
+		| SOIL_FLAG_COMPRESS_TO_DXT );
 	
 	table = new Object( "table.obj" );
 	
