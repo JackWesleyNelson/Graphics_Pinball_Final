@@ -65,15 +65,32 @@ void Camera::lookAt()
 
 void Camera::setTheta(float angle)
 {
-	CameraTheta += angle;
+	CameraTheta = angle;
 }
 
 void Camera::setPhi(float angle)
 {
-	CameraPhi += angle;
+	CameraPhi = angle;
 }
 
 void Camera::setRadius(float radius)
+{
+	CameraRadius = radius;
+	if(CameraRadius < 0)
+		CameraRadius = .0001;
+}
+
+void Camera::addTheta(float angle)
+{
+	CameraTheta += angle;
+}
+
+void Camera::addPhi(float angle)
+{
+	CameraPhi += angle;
+}
+
+void Camera::addRadius(float radius)
 {
 	CameraRadius += radius;
 	if(CameraRadius < 0)

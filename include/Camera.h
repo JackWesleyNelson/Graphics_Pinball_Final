@@ -16,6 +16,9 @@ public:
 	void setTheta(float angle);
 	void setPhi(float angle);
 	void setRadius(float radius);
+	void addTheta(float angle);
+	void addPhi(float angle);
+	void addRadius(float radius);
 
 	float getX();
 	float getY();

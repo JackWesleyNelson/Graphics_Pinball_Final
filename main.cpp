@@ -56,12 +56,17 @@ GLint menuId;
 
 //Camera variables
 Camera camera;
+float globalRadius = 100, globalTheta = (M_PI / 2.0f), globalPhi= (M_PI / 1.7f);
+bool topView = false;
 
 //Object Variables
 Object *table;
 
 //Textures
 GLuint textures[2];
+
+//Game Variables
+bool started = false, animating = false;
 
 // getRand() ///////////////////////////////////////////////////////////////////
 //
@@ -256,13 +261,16 @@ void mouseCallback(int button, int state, int thisX, int thisY) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void mouseMotion(int x, int y) {
-	if(leftMouseButton == GLUT_DOWN && glutGetModifiers() == GLUT_ACTIVE_CTRL) {
-		camera.setRadius((mouseY - y)*.05);
+	if(!topView && leftMouseButton == GLUT_DOWN && glutGetModifiers() == GLUT_ACTIVE_CTRL) {
+		globalRadius = (mouseY - y)*.05;
+		camera.addRadius(globalRadius);
 		camera.recomputeOrientation();
 	}
-    else if(leftMouseButton == GLUT_DOWN) {		// for the camera rotate
-        camera.setTheta((mouseX - x)*.005);
-		camera.setPhi((mouseY - y)*.005);
+    else if(!topView && leftMouseButton == GLUT_DOWN) {		// for the camera rotate
+		globalTheta = (mouseX - x)*.005;
+		globalPhi = (mouseY - y)*.005;
+        camera.addTheta(globalTheta);
+		camera.addPhi(globalPhi);
 		camera.recomputeOrientation();
 	}
 	
@@ -298,9 +306,9 @@ void initScene()  {
 	
 	//Set Up Camera
 	camera = Camera();
-	camera.setTheta(M_PI / 2.0f);
-	camera.setPhi(M_PI / 1.7f);
-	camera.setRadius(100);
+	camera.setTheta(globalTheta);
+	camera.setPhi(globalPhi);
+	camera.setRadius(globalRadius);
 	camera.recomputeOrientation();
 }
 
@@ -353,7 +361,12 @@ void normalKeysDown(unsigned char key, int x, int y) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void myTimer( int value ) {
-    // redraw our display
+	if(animating) {
+		if(globalRadius == 100)
+			started = true;
+	}
+
+	// redraw our display
     glutPostRedisplay();
 	glutSetWindow( winMain );
     // register a new timer callback
@@ -369,6 +382,20 @@ void myMenu( int value ) {
 	if (value == 0) {
 		exit(0);
 	}
+	if (value == 1) {
+		if(topView) {
+			camera.setTheta(globalTheta);
+			camera.setPhi(globalPhi);
+			camera.setRadius(globalRadius);
+		}
+		else {
+			camera.setTheta(M_PI / 2.0f);
+			camera.setPhi(M_PI / 1.05f);
+			camera.setRadius(115);
+		}
+		topView = !topView;
+		camera.recomputeOrientation();
+	}
 }
 
 // createMenus() ///////////////////////////////////////////////////////////////
@@ -380,6 +407,7 @@ void myMenu( int value ) {
 void createMenus() {
 	int menuId = glutCreateMenu(myMenu);
 	glutAddMenuEntry("Quit", 0);
+	glutAddMenuEntry("Switch Camera", 1);
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
