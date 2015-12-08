@@ -50,6 +50,15 @@ Vector operator-(Point a, Point b) {
     return Vector(a.getX()-b.getX(), a.getY()-b.getY(), a.getZ()-b.getZ());
 }
 
+void glTranslatef( Point p ) {
+    glTranslatef( p.getX(), p.getY(), p.getZ() );
+}
+
+void gluLookAt( Point eye, Point lookAt, Vector up ) {
+    gluLookAt( eye.getX(), eye.getY(), eye.getZ(),
+                lookAt.getX(), lookAt.getY(), lookAt.getZ(),
+                up.getX(), up.getY(), up.getZ() );
+}
 
 Point& Point::operator+=(Vector rhs) {
     this->setX( this->getX() + rhs.getX() );
@@ -92,3 +101,5 @@ double Point::at(int i) {
 void Point::glVertex() {
     glVertex3f(x, y, z);
 }
+
+

@@ -87,7 +87,11 @@ Vector cross(Vector a, Vector b) {
 }
 
 double dot(Vector a, Vector b) {
-    return a.getX()*b.getX() + a.getY()*b.getX() + a.getZ()*b.getZ();
+    return a.getX()*b.getX() + a.getY()*b.getY() + a.getZ()*b.getZ();
+}
+
+void glRotatef( double theta, Vector axis ) {
+    glRotatef( theta, axis.getX(), axis.getY(), axis.getZ() );
 }
 
 
@@ -116,4 +120,8 @@ double Vector::at(int i) {
     if(i == 1)  return y;
     if(i == 2)  return z;
     return -1;
+}
+
+void Vector::glNormal() {
+    glNormal3f( x, y, z );
 }
