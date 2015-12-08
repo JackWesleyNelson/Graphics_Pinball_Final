@@ -56,7 +56,7 @@ GLint menuId;
 
 //Camera variables
 Camera camera;
-float globalRadius = 100, globalTheta = (M_PI / 2.0f), globalPhi= (M_PI / 1.7f);
+float globalRadius = 300, globalTheta = (M_PI / 2.0f), globalPhi= (M_PI / 1.7f);
 bool topView = false;
 
 //Object Variables
@@ -180,6 +180,35 @@ void drawSky() {
 	}; glPopMatrix();
 }
 
+//drawTitle()
+void drawTitle() {
+	glDisable(GL_LIGHTING);
+	char title[64] = "PINBALL";
+	char instructions[64] = "Press Any Key To Start";
+	
+	glPushMatrix(); {
+	
+		// where we want it written
+		glRotatef(90, 0, 1, 0);
+		glRotatef(-15, 1, 0, 0);
+		glTranslatef(-25, 0, 250);
+	
+		// how big we want it
+		glPushMatrix(); {
+			glScalef(.1, .1, .1);
+			for (int c = 0; title[c] != 0; ++c)
+				glutStrokeCharacter(GLUT_STROKE_ROMAN, title[c]);
+		}; glPopMatrix();
+		
+		glTranslatef(8, -5, 0);
+		glScalef(.02, .02, .02);
+			for (int c = 0; instructions[c] != 0; ++c)
+				glutStrokeCharacter(GLUT_STROKE_ROMAN, instructions[c]);
+	}; glPopMatrix();
+	glEnable(GL_LIGHTING);
+	
+}
+
 //generateEnvironmentDL()
 //////////////////////////////////////////////////////////////
 //
@@ -261,16 +290,16 @@ void mouseCallback(int button, int state, int thisX, int thisY) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void mouseMotion(int x, int y) {
-	if(!topView && leftMouseButton == GLUT_DOWN && glutGetModifiers() == GLUT_ACTIVE_CTRL) {
-		globalRadius = (mouseY - y)*.05;
-		camera.addRadius(globalRadius);
+	if(started && !topView && leftMouseButton == GLUT_DOWN && glutGetModifiers() == GLUT_ACTIVE_CTRL) {
+		globalRadius += (mouseY - y)*.05;
+		camera.setRadius(globalRadius);
 		camera.recomputeOrientation();
 	}
-    else if(!topView && leftMouseButton == GLUT_DOWN) {		// for the camera rotate
-		globalTheta = (mouseX - x)*.005;
-		globalPhi = (mouseY - y)*.005;
-        camera.addTheta(globalTheta);
-		camera.addPhi(globalPhi);
+    else if(started && !topView && leftMouseButton == GLUT_DOWN) {		// for the camera rotate
+		globalTheta += (mouseX - x)*.005;
+		globalPhi += (mouseY - y)*.005;
+        camera.setTheta(globalTheta);
+		camera.setPhi(globalPhi);
 		camera.recomputeOrientation();
 	}
 	
@@ -330,6 +359,9 @@ void renderScene(void) {
 	
 	glCallList( environmentDL );
 	
+	if(!started)
+		drawTitle();
+	
 	//push the back buffer to the screen
     glutSwapBuffers();
 }
@@ -350,8 +382,13 @@ void keyUp( unsigned char key, int mouseX, int mouseY ) {
 ////////////////////////////////////////////////////////////////////////////////
 void normalKeysDown(unsigned char key, int x, int y) {
 	//if q key is pressed
-	if (key == 'q' || key == 'Q' || key == 27) {
-		exit(0);
+	if(!started) {
+		animating = true;
+	}
+	else {
+		if (key == 'q' || key == 'Q' || key == 27) {
+			exit(0);
+		}
 	}
 }
 
@@ -362,8 +399,14 @@ void normalKeysDown(unsigned char key, int x, int y) {
 ////////////////////////////////////////////////////////////////////////////////
 void myTimer( int value ) {
 	if(animating) {
-		if(globalRadius == 100)
+		globalRadius -=0.75;
+		if(globalRadius <= 100) {
+			globalRadius = 100;
+			animating = false;
 			started = true;
+		}
+		camera.setRadius(globalRadius);
+		camera.recomputeOrientation();
 	}
 
 	// redraw our display
@@ -382,7 +425,7 @@ void myMenu( int value ) {
 	if (value == 0) {
 		exit(0);
 	}
-	if (value == 1) {
+	if (started && value == 1) {
 		if(topView) {
 			camera.setTheta(globalTheta);
 			camera.setPhi(globalPhi);
@@ -391,7 +434,7 @@ void myMenu( int value ) {
 		else {
 			camera.setTheta(M_PI / 2.0f);
 			camera.setPhi(M_PI / 1.05f);
-			camera.setRadius(115);
+			camera.setRadius(125);
 		}
 		topView = !topView;
 		camera.recomputeOrientation();
