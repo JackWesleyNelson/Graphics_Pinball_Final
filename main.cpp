@@ -76,7 +76,7 @@ float tableX = 50.0f, tableZ = 25.0f;
 GLuint textures[2];
 
 //Game Variables
-bool started = false, animating = false;
+bool started, animating;
 
 //Ball object (can be replaced by system of balls for multi-ball system)
 Ball gameBall;
@@ -128,6 +128,123 @@ void drawGrid() {
 	} glPopMatrix();
 }
 
+//drawBorders()
+//////////////////////////////////////////////////////////////
+//
+//	Draws the initial pinball table setup
+//
+////////////////////////////////////////////////////////////////////////////////
+void drawBorders() {
+	glPushMatrix(); {
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, textures[2]);
+		
+		GLUquadricObj *myQuad2 = gluNewQuadric();
+		glBegin(GL_QUADS); {
+			glNormal3f( 1.0f, 0.0f, 0.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(-tableX, 0, -tableZ);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(-tableX, 0, tableZ);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(-tableX, 1, tableZ);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(-tableX, 1, -tableZ);
+			
+			glNormal3f( 0.0f, 1.0f, 0.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(-tableX-1, 0, -tableZ-1);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(-tableX-1, 0, tableZ+1);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(-tableX, 1, tableZ);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(-tableX, 1, -tableZ);
+			
+			glNormal3f( 0.0f, 0.0f, -1.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(-tableX, 0, -tableZ);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(tableX, 0, -tableZ);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(tableX, 1, -tableZ);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(-tableX, 1, -tableZ);
+			
+			glNormal3f( 0.0f, 1.0f, 0.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(-tableX-1, 0, -tableZ-1);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(tableX+1, 0, -tableZ-1);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(tableX, 1, -tableZ);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(-tableX, 1, -tableZ);
+			
+			glNormal3f( -1.0f, 0.0f, 0.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(tableX, 0, -tableZ);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(tableX, 0, -5);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(tableX, 1, -5);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(tableX, 1, -tableZ);
+			
+			glNormal3f( 0.0f, 1.0f, 0.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(tableX+1, 0, -tableZ-1);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(tableX+1, 0, -5);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(tableX, 1, -5);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(tableX, 1, -tableZ);
+			
+			glNormal3f( -1.0f, 0.0f, 0.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(tableX, 0, tableZ);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(tableX, 0, 5);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(tableX, 1, 5);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(tableX, 1, tableZ);
+			
+			glNormal3f( 0.0f, 1.0f, 0.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(tableX+1, 0, tableZ+1);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(tableX+1, 0, 5);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(tableX, 1, 5);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(tableX, 1, tableZ);
+			
+			glNormal3f( 0.0f, 0.0f, 1.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(-tableX, 0, tableZ);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(tableX, 0, tableZ);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(tableX, 1, tableZ);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(-tableX, 1, tableZ);
+			
+			glNormal3f( 0.0f, 1.0f, 0.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(-tableX-1, 0, tableZ+1);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(tableX+1, 0, tableZ+1);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(tableX, 1, tableZ);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(-tableX, 1, tableZ);
+		}; glEnd();
+		glDisable( GL_TEXTURE_2D );
+	}; glPopMatrix();
+}
+
 //drawSky()
 //////////////////////////////////////////////////////////////
 //
@@ -137,7 +254,7 @@ void drawGrid() {
 void drawSky() {
 	glPushMatrix(); {
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, textures[1]);
+		glBindTexture(GL_TEXTURE_2D, textures[0]);
 		
 		GLUquadricObj *myQuad2 = gluNewQuadric();
 		glBegin(GL_QUADS); {
@@ -249,15 +366,16 @@ void generateEnvironmentDL() {
 			//glEnable( GL_LIGHTING );
 			glRotatef( -10, 0, 0, 1 );
 			drawGrid();
+			drawBorders();
 		}; glPopMatrix();
 		
 		glPushMatrix(); {
 			//glDisable( GL_LIGHTING );
 			glEnable( GL_TEXTURE_2D );
-			glBindTexture(GL_TEXTURE_2D, textures[0]);
+			glBindTexture(GL_TEXTURE_2D, textures[1]);
 			glRotatef( 90, 0, 1, 0 );
-			glTranslatef( 16, -30, -45 );
-			glScalef( 90, 90, 92 );
+			glTranslatef( 16.2, -30, -45 );
+			glScalef( 92, 90, 94 );
 			table->draw();
 			glDisable( GL_TEXTURE_2D );
 			//glEnable( GL_LIGHTING );
@@ -444,7 +562,7 @@ void myTimer( int value ) {
 		gameBall.moveForward();
 		//Next, check if ball collides with edge of table
 		//for (unsigned int j = 0; j < balls.size(); j++) {	
-		if (gameBall.location.getX() > tableX) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		if (gameBall.location.getX() > tableX-gameBall.radius) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			gameBall.moveBackward();
 			Vector tempNormal(-1, 0, 0);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -452,7 +570,7 @@ void myTimer( int value ) {
 			gameBall.direction = outVector;
 			gameBall.moveForward();
 		}
-		else if (gameBall.location.getX() < -tableX) {
+		else if (gameBall.location.getX() < -tableX+gameBall.radius) {
 			gameBall.moveBackward();
 			Vector tempNormal(1, 0, 0);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -460,7 +578,7 @@ void myTimer( int value ) {
 			gameBall.direction = outVector;
 			gameBall.moveForward();
 		}
-		else if (gameBall.location.getZ() > tableZ) {
+		else if (gameBall.location.getZ() > tableZ-gameBall.radius) {
 			gameBall.moveBackward();
 			Vector tempNormal(0, 0, -1);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -468,7 +586,7 @@ void myTimer( int value ) {
 			gameBall.direction = outVector;
 			gameBall.moveForward();
 		}
-		else if (gameBall.location.getZ() < -tableZ) {
+		else if (gameBall.location.getZ() < -tableZ+gameBall.radius) {
 			gameBall.moveBackward();
 			Vector tempNormal(0, 0, 1);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -643,19 +761,18 @@ int main( int argc, char **argv ) {
     fprintf(stdout, "[INFO]: |   OpenGL Vendor:   %40s |\n", glGetString(GL_VENDOR));
     fprintf(stdout, "[INFO]: |   GLUI Version:    %40.2f |\n", GLUI_VERSION);
     fprintf(stdout, "[INFO]: \\-------------------------------------------------------------/\n");	
-	
     // do some basic OpenGL setup
     initScene();
 
     // create our menu options and attach to mouse button
     createMenus();
-
+	
     // register callback functions...
     registerCallbacks();
 	
 	//Load Textures
 	textures[0] = SOIL_load_OGL_texture(
-		"textures/table_skin.png",
+		"textures/skybox.png",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS
@@ -663,7 +780,15 @@ int main( int argc, char **argv ) {
 		| SOIL_FLAG_COMPRESS_TO_DXT );
 		
 	textures[1] = SOIL_load_OGL_texture(
-		"textures/skybox.png",
+		"textures/table_skin.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS
+		| SOIL_FLAG_INVERT_Y
+		| SOIL_FLAG_COMPRESS_TO_DXT );
+		
+	textures[2] = SOIL_load_OGL_texture(
+		"textures/table_skin2.png",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS
@@ -681,9 +806,10 @@ int main( int argc, char **argv ) {
 	//circular_objects.push_back(tCBO);
 	//RectangularBoardObject tRBO(8, 0, 8, 4, 4);
 	//rectangular_objects.push_back(tRBO);
-	
+	started = false;
+	animating = false;
     generateEnvironmentDL();
-
+	
 	// and enter the GLUT loop, never to exit.
     glutMainLoop();
 
