@@ -358,6 +358,9 @@ void renderScene(void) {
 	
 	glCallList( environmentDL );
 	
+	// Draw the ball
+	gameBall.draw();
+	
 	//push the back buffer to the screen
     glutSwapBuffers();
 }
