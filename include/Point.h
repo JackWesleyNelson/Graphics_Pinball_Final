@@ -35,4 +35,7 @@ Vector operator-(Point a, Point b);
 Point operator+(Point a, Vector b);
 Point operator+(Vector a, Point b);
 
+void glTranslatef( Point p );
+void gluLookAt( Point eye, Point lookAt, Vector up );
+
 #endif

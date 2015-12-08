@@ -38,6 +38,15 @@ using namespace std;
 #include "Object.h"
 #include "Camera.h"
 
+// Additional headers
+#include "Point.h"
+#include "Vector.h"
+#include "Ball.h"
+#include "CircularBoardObject.h"
+#include "RectangularBoardObject.h"
+
+// For some reason this math header fixes the abs() error
+#include <cmath>
 
 // GLOBAL VARIABLES ////////////////////////////////////////////////////////////
 
@@ -67,6 +76,25 @@ GLuint textures[2];
 
 //Game Variables
 bool started = false, animating = false;
+
+//Ball object (can be replaced by system of balls for multi-ball system)
+Ball gameBall;
+
+// Vector of circular objects on table
+vector<CircularBoardObject> circular_objects;
+
+// Vector of square objects on table
+vector<RectangularBoardObject> rectangular_objects;
+
+// Current setup for testing
+bool ballEnabled = false;  // Current setting = false so it shouldn't interfere with anything else
+float positiveXTableWall = 50;
+float negativeXTableWall = -50;
+float positiveZTableWall = 50;
+float negativeZTableWall = -50;;
+
+
+// END OF GLOBAL VARIABLES
 
 // getRand() ///////////////////////////////////////////////////////////////////
 //
@@ -362,6 +390,9 @@ void renderScene(void) {
 	if(!started)
 		drawTitle();
 	
+	// Draw the ball
+	gameBall.draw();
+	
 	//push the back buffer to the screen
     glutSwapBuffers();
 }
@@ -408,6 +439,110 @@ void myTimer( int value ) {
 		camera.setRadius(globalRadius);
 		camera.recomputeOrientation();
 	}
+	
+	if (ballEnabled) {
+		// Handle collision detection and position updates
+		// First, move ball forward
+		gameBall.moveForward();
+		
+		//Next, check if ball collides with edge of table
+		//for (unsigned int j = 0; j < balls.size(); j++) {	
+		if (gameBall.location.getX() > positiveXTableWall) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			gameBall.moveBackward();
+			Vector tempNormal(-1, 0, 0);
+			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+			outVector.normalize();
+			gameBall.direction = outVector;
+			gameBall.moveForward();
+		}
+		else if (gameBall.location.getX() < negativeXTableWall) {
+			gameBall.moveBackward();
+			Vector tempNormal(1, 0, 0);
+			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+			outVector.normalize();
+			gameBall.direction = outVector;
+			gameBall.moveForward();
+		}
+		else if (gameBall.location.getZ() > positiveZTableWall) {
+			gameBall.moveBackward();
+			Vector tempNormal(0, 0, -1);
+			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+			outVector.normalize();
+			gameBall.direction = outVector;
+			gameBall.moveForward();
+		}
+		else if (gameBall.location.getZ() < negativeZTableWall) {
+			gameBall.moveBackward();
+			Vector tempNormal(0, 0, 1);
+			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+			outVector.normalize();
+			gameBall.direction = outVector;
+			gameBall.moveForward();
+		}
+		//}
+		
+		// Check for and Handle collisions with objects with circular profiles
+		for (int i = 0; i < circular_objects.size(); i++) { // Do we need to check Y-axis coordinates???
+			double tempDist = sqrt(pow(gameBall.location.getX() - circular_objects.at(i).getX(), 2)
+						+ pow(gameBall.location.getY() - circular_objects.at(i).getY(), 2)
+						+ pow(gameBall.location.getZ() - circular_objects.at(i).getZ(), 2));
+			double summedRadii = gameBall.radius + circular_objects.at(i).getRadius();
+			
+			if (tempDist < summedRadii) {
+				gameBall.moveBackward();
+						
+				Vector normal_ji(gameBall.location.getX() - circular_objects.at(i).getX(), 
+					gameBall.location.getY() - circular_objects.at(i).getY(), gameBall.location.getZ() - circular_objects.at(i).getZ());
+				normal_ji.normalize();
+						
+				//Point collisionPoint = balls.at(i)->location + (balls.at(i)->radius) * normal_ij; // Not needed
+						
+				Vector outVector_i = gameBall.direction - (2 * dot(gameBall.direction, normal_ji)) * normal_ji;
+				outVector_i.normalize();
+						
+				gameBall.direction = outVector_i;
+						
+				gameBall.moveForward();
+			}
+		}
+		
+		// Check for and handle collisions with objects with rectangular profiles
+		for (int i = 0; i < rectangular_objects.size(); i++) {
+			if (abs(gameBall.location.getX() - rectangular_objects.at(i).getX()) < gameBall.radius) {
+				gameBall.moveBackward();
+				Vector tempNormal(-1, 0, 0);
+				Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+				outVector.normalize();
+				gameBall.direction = outVector;
+				gameBall.moveForward();	
+			}
+			else if (abs(gameBall.location.getX() - (rectangular_objects.at(i).getX() + rectangular_objects.at(i).getDeltaX())) < gameBall.radius) {
+				gameBall.moveBackward();
+				Vector tempNormal(1, 0, 0);
+				Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+				outVector.normalize();
+				gameBall.direction = outVector;
+				gameBall.moveForward();
+			}
+			else if (abs(gameBall.location.getZ() - rectangular_objects.at(i).getZ()) < gameBall.radius) {
+				gameBall.moveBackward();
+				Vector tempNormal(0, 0, -1);
+				Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+				outVector.normalize();
+				gameBall.direction = outVector;
+				gameBall.moveForward();	
+			}
+			else if (abs(gameBall.location.getZ() - (rectangular_objects.at(i).getZ() + rectangular_objects.at(i).getDeltaZ())) < gameBall.radius) {
+				gameBall.moveBackward();
+				Vector tempNormal(0, 0, 1);
+				Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+				outVector.normalize();
+				gameBall.direction = outVector;
+				gameBall.moveForward();
+			}
+		}
+	}
+	// End of collision detection and handling
 
 	// redraw our display
     glutPostRedisplay();
@@ -539,6 +674,15 @@ int main( int argc, char **argv ) {
 		| SOIL_FLAG_COMPRESS_TO_DXT );
 	
 	table = new Object( "table.obj" );
+	
+	// Initialize gameBall
+	gameBall = Ball();
+	
+	// Temporary initialization; actual initialization will be done with board data
+	CircularBoardObject tCBO(24, 0, 24, 4);
+	circular_objects.push_back(tCBO);
+	RectangularBoardObject tRBO(8, 0, 8, 4, 4);
+	rectangular_objects.push_back(tRBO);
 	
     generateEnvironmentDL();
 

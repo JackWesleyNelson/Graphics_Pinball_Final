@@ -17,6 +17,8 @@ public:
     double mag();
     void normalize();
     double at(int i);
+    
+    void glNormal();
 
 	Vector& operator+=(Vector rhs);
 	Vector& operator-=(Vector rhs);
@@ -36,5 +38,7 @@ Vector operator-(Vector a, Vector b);
 
 Vector cross(Vector a, Vector b);
 double dot(Vector a, Vector b);
+
+void glRotatef( double theta, Vector axis );
 
 #endif

@@ -226,7 +226,7 @@ bool Object::loadObject() {
 			
 			glBegin(GL_TRIANGLES); {
 				for(long unsigned int i = 1; i < v.size()-1; i++) {
-					//gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
+					
 					if( faceHasVertexNormals ) {
 						glNormal3f( vertexNormals.at( vn[0]*3 ), vertexNormals.at( vn[0]*3+1 ), vertexNormals.at( vn[0]*3+2) );
 					} else {
