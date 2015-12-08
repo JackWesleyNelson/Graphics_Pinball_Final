@@ -70,6 +70,7 @@ bool topView = false;
 
 //Object Variables
 Object *table;
+float tableX = 50.0f, tableZ = 25.0f;
 
 //Textures
 GLuint textures[2];
@@ -87,11 +88,7 @@ vector<CircularBoardObject> circular_objects;
 vector<RectangularBoardObject> rectangular_objects;
 
 // Current setup for testing
-bool ballEnabled = false;  // Current setting = false so it shouldn't interfere with anything else
-float positiveXTableWall = 50;
-float negativeXTableWall = -50;
-float positiveZTableWall = 50;
-float negativeZTableWall = -50;;
+bool ballEnabled = true;  // Current setting = false so it shouldn't interfere with anything else
 
 
 // END OF GLOBAL VARIABLES
@@ -115,8 +112,8 @@ void drawGrid() {
 	glPushMatrix(); {
 		glDisable( GL_LIGHTING );
 			glBegin(GL_LINES); {
-			for (int i = -50; i <= 50; i +=5)
-				for (int j = -25; j <= 25; j +=5) {
+			for (int i = -tableX; i <= tableX; i +=5)
+				for (int j = -tableZ; j <= tableZ; j +=5) {
 					/*if( j % 5 == 0 && i % 5 == 0)
 						glColor3f( 1, 0, 0 );
 					else glColor3f( 1, 1, 1 );*/
@@ -391,6 +388,7 @@ void renderScene(void) {
 		drawTitle();
 	
 	// Draw the ball
+	glRotatef( -10, 0, 0, 1 );
 	gameBall.draw();
 	
 	//push the back buffer to the screen
@@ -439,15 +437,14 @@ void myTimer( int value ) {
 		camera.setRadius(globalRadius);
 		camera.recomputeOrientation();
 	}
-	
+
 	if (ballEnabled) {
 		// Handle collision detection and position updates
 		// First, move ball forward
 		gameBall.moveForward();
-		
 		//Next, check if ball collides with edge of table
 		//for (unsigned int j = 0; j < balls.size(); j++) {	
-		if (gameBall.location.getX() > positiveXTableWall) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		if (gameBall.location.getX() > tableX) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			gameBall.moveBackward();
 			Vector tempNormal(-1, 0, 0);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -455,7 +452,7 @@ void myTimer( int value ) {
 			gameBall.direction = outVector;
 			gameBall.moveForward();
 		}
-		else if (gameBall.location.getX() < negativeXTableWall) {
+		else if (gameBall.location.getX() < -tableX) {
 			gameBall.moveBackward();
 			Vector tempNormal(1, 0, 0);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -463,7 +460,7 @@ void myTimer( int value ) {
 			gameBall.direction = outVector;
 			gameBall.moveForward();
 		}
-		else if (gameBall.location.getZ() > positiveZTableWall) {
+		else if (gameBall.location.getZ() > tableZ) {
 			gameBall.moveBackward();
 			Vector tempNormal(0, 0, -1);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -471,7 +468,7 @@ void myTimer( int value ) {
 			gameBall.direction = outVector;
 			gameBall.moveForward();
 		}
-		else if (gameBall.location.getZ() < negativeZTableWall) {
+		else if (gameBall.location.getZ() < -tableZ) {
 			gameBall.moveBackward();
 			Vector tempNormal(0, 0, 1);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -677,12 +674,13 @@ int main( int argc, char **argv ) {
 	
 	// Initialize gameBall
 	gameBall = Ball();
+	gameBall.direction = Vector( 0, 0, -1);
 	
 	// Temporary initialization; actual initialization will be done with board data
-	CircularBoardObject tCBO(24, 0, 24, 4);
-	circular_objects.push_back(tCBO);
-	RectangularBoardObject tRBO(8, 0, 8, 4, 4);
-	rectangular_objects.push_back(tRBO);
+	//CircularBoardObject tCBO(24, 0, 24, 4);
+	//circular_objects.push_back(tCBO);
+	//RectangularBoardObject tRBO(8, 0, 8, 4, 4);
+	//rectangular_objects.push_back(tRBO);
 	
     generateEnvironmentDL();
 
