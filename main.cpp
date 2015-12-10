@@ -240,6 +240,37 @@ void drawBorders() {
 			glVertex3f(tableX, 1, tableZ);
 			glTexCoord2f(1.0f, 0.0f);
 			glVertex3f(-tableX, 1, tableZ);
+			
+			glNormal3f( 0.0f, 0.0f, -1.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(tableX, 0, -tableZ+4);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(-tableX+15, 0, -tableZ+4);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(-tableX+15, 1, -tableZ+4);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(tableX, 1, -tableZ+4);
+			
+			glNormal3f( 0.0f, 0.0f, 1.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(tableX, 0, -tableZ+6);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(-tableX+15, 0, -tableZ+6);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(-tableX+15, 1, -tableZ+6);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(tableX, 1, -tableZ+6);
+			
+			glNormal3f( 0.0f, 1.0f, 0.0f);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(tableX, 1, -tableZ+6);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(-tableX+15, 1, -tableZ+6);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(-tableX+15, 1, -tableZ+4);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(tableX, 1, -tableZ+4);
+			
 		}; glEnd();
 		glDisable( GL_TEXTURE_2D );
 	}; glPopMatrix();
@@ -529,70 +560,40 @@ void keyUp( unsigned char key, int mouseX, int mouseY ) {
 ////////////////////////////////////////////////////////////////////////////////
 void normalKeysDown(unsigned char key, int x, int y) {
 	//if q key is pressed
+	if (key == 'q' || key == 'Q' || key == 27) {
+			exit(0);
+	}
+		
 	if(!started) {
 		animating = true;
 	}
 	else {
-		if (key == 'q' || key == 'Q' || key == 27) {
-			exit(0);
-		}
+		
 	}
 }
 
-// myTimer() ////////////////////////////////////////////////////////////////////
+// moveBall() ////////////////////////////////////////////////////////////
 //
-//  GLUT timer callback; gets called when a timer expires
+//  Handles collision detection and position updates
 //
 ////////////////////////////////////////////////////////////////////////////////
-void myTimer( int value ) {
-	if(animating) {
-		globalRadius -=0.75;
-		if(globalRadius <= 100) {
-			globalRadius = 100;
-			animating = false;
-			started = true;
-		}
-		camera.setRadius(globalRadius);
-		camera.recomputeOrientation();
-	}
 
-	if (ballEnabled) {
-		// Handle collision detection and position updates
-		// First, move ball forward
+void moveBall() {
+	// First, move ball forward
 		gameBall.moveForward();
 		//Next, check if ball collides with edge of table
 		//for (unsigned int j = 0; j < balls.size(); j++) {	
 		if (gameBall.location.getX() > tableX-gameBall.radius) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			gameBall.moveBackward();
-			Vector tempNormal(-1, 0, 0);
-			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
-			outVector.normalize();
-			gameBall.direction = outVector;
-			gameBall.moveForward();
+			gameBall.reflect(Vector (-1, 0, 0));
 		}
 		else if (gameBall.location.getX() < -tableX+gameBall.radius) {
-			gameBall.moveBackward();
-			Vector tempNormal(1, 0, 0);
-			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
-			outVector.normalize();
-			gameBall.direction = outVector;
-			gameBall.moveForward();
+			gameBall.reflect(Vector (1, 0, 0));
 		}
 		else if (gameBall.location.getZ() > tableZ-gameBall.radius) {
-			gameBall.moveBackward();
-			Vector tempNormal(0, 0, -1);
-			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
-			outVector.normalize();
-			gameBall.direction = outVector;
-			gameBall.moveForward();
+			gameBall.reflect(Vector (0, 0, -1));
 		}
 		else if (gameBall.location.getZ() < -tableZ+gameBall.radius) {
-			gameBall.moveBackward();
-			Vector tempNormal(0, 0, 1);
-			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
-			outVector.normalize();
-			gameBall.direction = outVector;
-			gameBall.moveForward();
+			gameBall.reflect(Vector (0, 0, 1));
 		}
 		//}
 		
@@ -656,6 +657,26 @@ void myTimer( int value ) {
 				gameBall.moveForward();
 			}
 		}
+}
+// myTimer() ////////////////////////////////////////////////////////////////////
+//
+//  GLUT timer callback; gets called when a timer expires
+//
+////////////////////////////////////////////////////////////////////////////////
+void myTimer( int value ) {
+	if(animating) {
+		globalRadius -=0.75;
+		if(globalRadius <= 100) {
+			globalRadius = 100;
+			animating = false;
+			started = true;
+		}
+		camera.setRadius(globalRadius);
+		camera.recomputeOrientation();
+	}
+
+	if (ballEnabled) {
+		moveBall();
 	}
 	// End of collision detection and handling
 

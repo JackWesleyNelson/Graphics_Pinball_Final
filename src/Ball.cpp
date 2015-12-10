@@ -78,6 +78,14 @@ void Ball::draw() {
     }; glPopMatrix();
 }
 
+void Ball::reflect( Vector n ) {
+	moveBackward();
+	Vector outVector = direction - (2 * dot(direction, n)) * n;
+	outVector.normalize();
+	direction = outVector;
+	moveForward();
+}
+
 void Ball::moveForward() {
     location += direction*0.1;
     _rotation -= ((360.0f / 64.0f));

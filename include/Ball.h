@@ -17,6 +17,7 @@ public:
     Vector direction;
     
     void draw();
+	void reflect( Vector n );
     void moveForward();
     void moveBackward();
     
