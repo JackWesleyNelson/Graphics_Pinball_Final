@@ -73,10 +73,11 @@ Object *table;
 float tableX = 50.0f, tableZ = 25.0f;
 
 //Textures
-GLuint textures[2];
+GLuint textures[10];
 
 //Game Variables
-bool started, animating;
+bool started, animating, charging;
+float charge = 0;
 
 //Ball object (can be replaced by system of balls for multi-ball system)
 Ball gameBall;
@@ -138,137 +139,136 @@ void drawBorders() {
 	glPushMatrix(); {
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, textures[2]);
-		
 		GLUquadricObj *myQuad2 = gluNewQuadric();
 		glBegin(GL_QUADS); {
 			glNormal3f( 1.0f, 0.0f, 0.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX, 0, -tableZ);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(-tableX, 0, tableZ);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(-tableX, 1, tableZ);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX, 1, -tableZ);
 			
 			glNormal3f( 0.0f, 1.0f, 0.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX-1, 0, -tableZ-1);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(-tableX-1, 0, tableZ+1);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(-tableX, 1, tableZ);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX, 1, -tableZ);
 			
 			glNormal3f( 0.0f, 0.0f, -1.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX, 0, -tableZ);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 0, -tableZ);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 1, -tableZ);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX, 1, -tableZ);
 			
 			glNormal3f( 0.0f, 1.0f, 0.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX-1, 0, -tableZ-1);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX+1, 0, -tableZ-1);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 1, -tableZ);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX, 1, -tableZ);
 			
 			glNormal3f( -1.0f, 0.0f, 0.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 0, -tableZ);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 0, -5);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 1, -5);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ);
 			
 			glNormal3f( 0.0f, 1.0f, 0.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX+1, 0, -tableZ-1);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX+1, 0, -5);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 1, -5);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ);
 			
 			glNormal3f( -1.0f, 0.0f, 0.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 0, tableZ);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 0, 5);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 1, 5);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, tableZ);
 			
 			glNormal3f( 0.0f, 1.0f, 0.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX+1, 0, tableZ+1);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX+1, 0, 5);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 1, 5);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, tableZ);
 			
 			glNormal3f( 0.0f, 0.0f, 1.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX, 0, tableZ);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 0, tableZ);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 1, tableZ);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX, 1, tableZ);
 			
 			glNormal3f( 0.0f, 1.0f, 0.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX-1, 0, tableZ+1);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX+1, 0, tableZ+1);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(tableX, 1, tableZ);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(-tableX, 1, tableZ);
 			
 			glNormal3f( 0.0f, 0.0f, -1.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 0, -tableZ+4);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(-tableX+15, 0, -tableZ+4);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(-tableX+15, 1, -tableZ+4);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ+4);
 			
 			glNormal3f( 0.0f, 0.0f, 1.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 0, -tableZ+6);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(-tableX+15, 0, -tableZ+6);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(-tableX+15, 1, -tableZ+6);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ+6);
 			
 			glNormal3f( 0.0f, 1.0f, 0.0f);
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ+6);
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(-tableX+15, 1, -tableZ+6);
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2f(8.0f, 1.0f);
 			glVertex3f(-tableX+15, 1, -tableZ+4);
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ+4);
 			
 		}; glEnd();
@@ -380,6 +380,35 @@ void drawTitle() {
 	}; glPopMatrix();
 	glEnable(GL_LIGHTING);
 	
+}
+
+//drawCharge()
+//////////////////////////////////////////////////////////////
+//
+//	Draws the charge of the ball spring
+//
+////////////////////////////////////////////////////////////////////////////////
+void drawCharge() {
+	glPushMatrix(); {
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, textures[3]);
+		glTranslatef( tableX+2, 0.0f, -tableZ );
+		GLUquadricObj *myQuad2 = gluNewQuadric();
+		glBegin(GL_QUADS); {
+			for(int i=0; i<charge; i++) {
+				glNormal3f( 0.0f, 1.0f, 0.0f);
+				glTexCoord2f(0.0f, 0.0f);
+				glVertex3f(0, 0, 0+(2*i));
+				glTexCoord2f(0.0f, 1.0f);
+				glVertex3f(1, 0, 0+(2*i));
+				glTexCoord2f(1.0f, 1.0f);
+				glVertex3f(1, 0, 1+(2*i));
+				glTexCoord2f(1.0f, 0.0f);
+				glVertex3f(0, 0, 1+(2*i));
+			}
+		}; glEnd();
+		glDisable(GL_TEXTURE_2D);
+	}; glPopMatrix();
 }
 
 //generateEnvironmentDL()
@@ -536,8 +565,9 @@ void renderScene(void) {
 	if(!started)
 		drawTitle();
 	
-	// Draw the ball
 	glRotatef( -10, 0, 0, 1 );
+	//Draw everything on the table
+	drawCharge();
 	gameBall.draw();
 	
 	//push the back buffer to the screen
@@ -550,7 +580,10 @@ void renderScene(void) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void keyUp( unsigned char key, int mouseX, int mouseY ) {
-	
+	if(key == 32) {
+		charging = false;
+		charge = 0;
+	}
 }
 
 // normalKeysDown() ////////////////////////////////////////////////////////////
@@ -568,7 +601,9 @@ void normalKeysDown(unsigned char key, int x, int y) {
 		animating = true;
 	}
 	else {
-		
+		if(key == 32) {
+			charging = true;
+		}
 	}
 }
 
@@ -598,7 +633,7 @@ void moveBall() {
 		//}
 		
 		// Check for and Handle collisions with objects with circular profiles
-		for (int i = 0; i < circular_objects.size(); i++) { // Do we need to check Y-axis coordinates???
+		for (int i = 0; i < circular_objects.size(); i++) { 
 			double tempDist = sqrt(pow(gameBall.location.getX() - circular_objects.at(i).getX(), 2)
 						+ pow(gameBall.location.getY() - circular_objects.at(i).getY(), 2)
 						+ pow(gameBall.location.getZ() - circular_objects.at(i).getZ(), 2));
@@ -611,14 +646,7 @@ void moveBall() {
 					gameBall.location.getY() - circular_objects.at(i).getY(), gameBall.location.getZ() - circular_objects.at(i).getZ());
 				normal_ji.normalize();
 						
-				//Point collisionPoint = balls.at(i)->location + (balls.at(i)->radius) * normal_ij; // Not needed
-						
-				Vector outVector_i = gameBall.direction - (2 * dot(gameBall.direction, normal_ji)) * normal_ji;
-				outVector_i.normalize();
-						
-				gameBall.direction = outVector_i;
-						
-				gameBall.moveForward();
+				gameBall.reflect(normal_ji);
 			}
 		}
 		
@@ -666,15 +694,22 @@ void moveBall() {
 void myTimer( int value ) {
 	if(animating) {
 		globalRadius -=0.75;
-		if(globalRadius <= 100) {
-			globalRadius = 100;
+		if(globalRadius <= 110) {
+			globalRadius = 110;
 			animating = false;
 			started = true;
 		}
 		camera.setRadius(globalRadius);
 		camera.recomputeOrientation();
 	}
-
+	
+	if(charging) {
+		charge+= 0.02;
+		if(charge > 3.0)
+			charge=3.0;
+	}
+		
+	
 	if (ballEnabled) {
 		moveBall();
 	}
@@ -809,7 +844,17 @@ int main( int argc, char **argv ) {
 		| SOIL_FLAG_COMPRESS_TO_DXT );
 		
 	textures[2] = SOIL_load_OGL_texture(
-		"textures/table_skin2.png",
+		"textures/table_skin3.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS
+		| SOIL_FLAG_INVERT_Y
+		| SOIL_FLAG_COMPRESS_TO_DXT );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);	
+		
+	textures[3] = SOIL_load_OGL_texture(
+		"textures/charge.png",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS
