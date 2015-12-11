@@ -531,6 +531,16 @@ void initScene()  {
     glLightfv( GL_LIGHT0, GL_AMBIENT, ambientCol );
     glEnable( GL_LIGHTING );
     glEnable( GL_LIGHT0 );
+	
+	float pos[4] = { 0.0, 10.0, 0.0, 1.0 };
+	float newCol[4] = { 1, 1, 1, 1 };
+	GLfloat dir[4] = { 0, 0, 1, 0 };
+	glLightfv(GL_LIGHT7, GL_POSITION, pos);
+	glLightfv(GL_LIGHT7, GL_DIFFUSE, newCol);
+	glLightfv(GL_LIGHT7, GL_SPOT_DIRECTION, dir);
+	glLightf(GL_LIGHT7, GL_SPOT_CUTOFF, 12);
+	glLightf(GL_LIGHT7, GL_SPOT_EXPONENT, 100);
+	
 	//******************************************************************
     glShadeModel(GL_SMOOTH);
 
