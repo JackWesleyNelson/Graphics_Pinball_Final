@@ -540,7 +540,7 @@ void initScene()  {
 	glLightfv(GL_LIGHT7, GL_SPOT_DIRECTION, dir);
 	glLightf(GL_LIGHT7, GL_SPOT_CUTOFF, 12);
 	glLightf(GL_LIGHT7, GL_SPOT_EXPONENT, 100);
-	
+	glEnable( GL_LIGHT7 );
 	//******************************************************************
     glShadeModel(GL_SMOOTH);
 
@@ -592,6 +592,10 @@ void renderScene(void) {
 void keyUp( unsigned char key, int mouseX, int mouseY ) {
 	if(key == 32) {
 		charging = false;
+		if(gameBall.location.getX() > tableX-10 && gameBall.location.getZ() < -tableZ+4 ) {
+			gameBall.direction = Vector( 1.0, 0.0, 0.0 );
+			gameBall.velocity += charge*3.0;
+		}
 		charge = 0;
 	}
 }
@@ -718,7 +722,15 @@ void myTimer( int value ) {
 		if(charge > 3.0)
 			charge=3.0;
 	}
-		
+	cout << gameBall.location.getX() << " " << gameBall.location.getZ() << endl;
+	
+	gameBall.direction = gameBall.direction + Vector( .01, 0.0, 0.0 );
+	
+	if( gameBall.direction.getX() < 0 )
+		gameBall.velocity -= 0.005;
+	else gameBall.velocity += 0.005;
+	
+	//cout << gameBall.direction.getX() << gameBall.velocity << endl;
 	
 	if (ballEnabled) {
 		moveBall();
@@ -874,8 +886,8 @@ int main( int argc, char **argv ) {
 	table = new Object( "table.obj" );
 	
 	// Initialize gameBall
-	gameBall = Ball();
-	gameBall.direction = Vector( 0, 0, -1);
+	gameBall = Ball( Point(tableX-20, 0.0, -tableZ+2.0), Vector(0.1, 0.0, 0.0), 2.0 );
+	gameBall.direction = Vector( 1, 0, 0 );
 	
 	// Temporary initialization; actual initialization will be done with board data
 	//CircularBoardObject tCBO(24, 0, 24, 4);

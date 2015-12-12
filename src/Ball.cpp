@@ -14,11 +14,13 @@ Ball::Ball() {
     location = Point(0,0,0);
     direction = Vector(1,0,0);
     _rotation = 0;
+	velocity = 0.1;
     _color = Point(rand() * 100 % 50 / 100.0 + 0.5, rand() * 100 % 50 / 100.0 + 0.5, rand() * 100 % 50 / 100.0 + 0.5);
 }
 
 Ball::Ball( Point l, Vector d, double r ) : radius(r), location(l), direction(d) {
-    _rotation = 0;
+    velocity = 0.1;
+	_rotation = 0;
     _color = Point(rand() * 100 % 50 / 100.0 + 0.5, rand() * 100 % 50 / 100.0 + 0.5, rand() * 100 % 50 / 100.0 + 0.5);
 }
 
@@ -83,11 +85,12 @@ void Ball::reflect( Vector n ) {
 	Vector outVector = direction - (2 * dot(direction, n)) * n;
 	outVector.normalize();
 	direction = outVector;
+	velocity/=2;
 	moveForward();
 }
 
 void Ball::moveForward() {
-    location += direction*0.1;
+    location += direction*velocity;
     _rotation -= ((360.0f / 64.0f));
     if( _rotation < 0 ) {
         _rotation += 360;
@@ -95,7 +98,7 @@ void Ball::moveForward() {
 }
 
 void Ball::moveBackward() {
-    location -= direction*0.1;
+    location -= direction*velocity;
     _rotation += ((360.0f / 64.0f));
     if( _rotation > 360 ) {
         _rotation -= 360;

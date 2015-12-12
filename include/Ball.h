@@ -15,7 +15,8 @@ public:
     double radius;
     Point location;
     Vector direction;
-    
+    float velocity;
+	
     void draw();
 	void reflect( Vector n );
     void moveForward();
