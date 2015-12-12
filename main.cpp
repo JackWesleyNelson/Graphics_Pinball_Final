@@ -261,7 +261,7 @@ void drawBorders() {
 			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ+6);
 			
-			glNormal3f( 0.0f, 1.0f, 0.0f);
+			glNormal3f( 0.0f, 1.0f, 0.0f );
 			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ+6);
 			glTexCoord2f(8.0f, 1.0f);
@@ -270,6 +270,26 @@ void drawBorders() {
 			glVertex3f(-tableX+15, 1, -tableZ+4);
 			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ+4);
+			
+			glNormal3f( 1.0, 0.0 , 1.0 );
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(-tableX, 0, -tableZ+5);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(-tableX, 1, -tableZ+5);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(-tableX+5, 1, -tableZ);
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(-tableX+5, 0, -tableZ);
+			
+			glNormal3f( 0.0f, 1.0f, 0.0f );
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(-tableX, 1, -tableZ+5);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(-tableX+5, 1, -tableZ);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(-tableX, 1, -tableZ);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(-tableX, 1, -tableZ+5);
 			
 		}; glEnd();
 		glDisable( GL_TEXTURE_2D );
@@ -630,7 +650,7 @@ void normalKeysDown(unsigned char key, int x, int y) {
 void moveBall() {
 	// First, move ball forward
 		gameBall.moveForward();
-		//Next, check if ball collides with edge of table
+		//Next, check if ball collides with edges of the table
 		//for (unsigned int j = 0; j < balls.size(); j++) {	
 		if (gameBall.location.getX() > tableX-gameBall.radius) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			gameBall.reflect(Vector (-1, 0, 0));
@@ -643,6 +663,9 @@ void moveBall() {
 		}
 		else if (gameBall.location.getZ() < -tableZ+gameBall.radius) {
 			gameBall.reflect(Vector (0, 0, 1));
+		}
+		else if(gameBall.location.getX() < -tableX+5+gameBall.radius && gameBall.location.getZ() < -tableZ+5+gameBall.radius) {
+			gameBall.reflect(Vector (1, 0, 1));
 		}
 		//}
 		
@@ -722,15 +745,18 @@ void myTimer( int value ) {
 		if(charge > 3.0)
 			charge=3.0;
 	}
-	cout << gameBall.location.getX() << " " << gameBall.location.getZ() << endl;
 	
-	gameBall.direction = gameBall.direction + Vector( .01, 0.0, 0.0 );
+	if(gameBall.direction.getX() < 1.0)
+		gameBall.direction = gameBall.direction + Vector( .01, 0.0, 0.0 );
 	
-	if( gameBall.direction.getX() < 0 )
+	if( gameBall.direction.getX() < 0 ) {
 		gameBall.velocity -= 0.005;
+		if(gameBall.velocity <= 0) {
+			gameBall.direction = Vector(gameBall.direction.getX() * -1, gameBall.direction.getY(), gameBall.direction.getZ());
+			gameBall.velocity = .05;
+		}
+	}
 	else gameBall.velocity += 0.005;
-	
-	//cout << gameBall.direction.getX() << gameBall.velocity << endl;
 	
 	if (ballEnabled) {
 		moveBall();
