@@ -30,6 +30,14 @@ Point operator*(Point a, float f) {
     return Point(a.getX()*f,a.getY()*f,a.getZ()*f);
 }
 
+bool operator==(Point a, Point b) {
+	return ( a.getX() == b.getX() && a.getY() == b.getY() && a.getZ() == b.getZ() );
+}
+
+bool operator!=(Point a, Point b) {
+	return !( a == b );
+}
+	
 Point operator/(Point a, float f) {
     return Point(a.getX()/f,a.getY()/f,a.getZ()/f);
 }
@@ -44,6 +52,11 @@ Point operator*(float f, Point a) {
 
 Point operator+(Point a, Vector b) {
     return Point(a.getX()+b.getX(), a.getY()+b.getY(), a.getZ()+b.getZ());
+
+}
+
+Point operator+(Point a, Point b){
+	return Point(a.getX()+b.getX(), a.getY()+b.getY(), a.getZ()+b.getZ());
 }
 
 Vector operator-(Point a, Point b) {
@@ -99,7 +112,17 @@ double Point::at(int i) {
 }
 
 void Point::glVertex() {
-    glVertex3f(x, y, z);
+	glVertex3f(x, y, z);
 }
 
+void Point::glTexCoord() {
+	glTexCoord2f(x, y);
+}
 
+void Point::glTranslate() {
+	glTranslatef(x, y, z);
+}
+
+void glVertex3f( Point p ) {
+	p.glVertex();
+}

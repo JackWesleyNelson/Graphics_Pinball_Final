@@ -44,6 +44,10 @@ using namespace std;
 #include "Ball.h"
 #include "CircularBoardObject.h"
 #include "RectangularBoardObject.h"
+#include "Shader_Utils.h"
+#include "MD5/md5model.h"
+#include "MD5/md5mesh.h"
+#include "MD5/md5anim.h"
 
 // For some reason this math header fixes the abs() error
 #include <cmath>
@@ -53,6 +57,17 @@ using namespace std;
 static size_t windowWidth = 640;
 static size_t windowHeight = 480;
 static float aspectRatio;
+//animation variables
+int animated = 0;
+
+struct md5_model_t md5file;
+struct md5_anim_t md5anim;
+
+struct md5_joint_t *skeleton = NULL;
+struct anim_info_t animInfo;
+
+bool DISPLAY_WIREFRAME = false;
+bool DISPLAY_SKELETON = false;
 
 int winMain;						//Window declaration
 
@@ -261,7 +276,7 @@ void drawBorders() {
 			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ+6);
 			
-			glNormal3f( 0.0f, 1.0f, 0.0f);
+			glNormal3f( 0.0f, 1.0f, 0.0f );
 			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ+6);
 			glTexCoord2f(8.0f, 1.0f);
@@ -270,6 +285,26 @@ void drawBorders() {
 			glVertex3f(-tableX+15, 1, -tableZ+4);
 			glTexCoord2f(8.0f, 0.0f);
 			glVertex3f(tableX, 1, -tableZ+4);
+			
+			glNormal3f( 1.0, 0.0 , 1.0 );
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(-tableX, 0, -tableZ+5);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(-tableX, 1, -tableZ+5);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(-tableX+5, 1, -tableZ);
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(-tableX+5, 0, -tableZ);
+			
+			glNormal3f( 0.0f, 1.0f, 0.0f );
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(-tableX, 1, -tableZ+5);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(-tableX+5, 1, -tableZ);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(-tableX, 1, -tableZ);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(-tableX, 1, -tableZ+5);
 			
 		}; glEnd();
 		glDisable( GL_TEXTURE_2D );
@@ -517,6 +552,9 @@ void mouseMotion(int x, int y) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void initScene()  {
+	const char *filename = "models/monsters/hellknight/mesh/hellknight.md5mesh";
+	const char *animfile = "models/monsters/hellknight/animations/idle2.md5anim";
+	
     glEnable(GL_DEPTH_TEST);
 
     // tell OpenGL not to use the material system; just use whatever we 
@@ -541,10 +579,42 @@ void initScene()  {
 	glLightf(GL_LIGHT7, GL_SPOT_CUTOFF, 12);
 	glLightf(GL_LIGHT7, GL_SPOT_EXPONENT, 100);
 	glEnable(GL_LIGHT7);
-	
 	//******************************************************************
     glShadeModel(GL_SMOOTH);
 
+	/* Load MD5 model file */
+    if (!ReadMD5Model (filename, &md5file))
+        exit (EXIT_FAILURE);
+    
+    AllocVertexArrays ();
+    
+    /* Load MD5 animation file */
+    if (animfile)
+    {
+        if (!ReadMD5Anim (animfile, &md5anim))
+        {
+            FreeAnim (&md5anim);
+        }
+        else
+        {
+            animInfo.curr_frame = 0;
+            animInfo.next_frame = 1;
+            
+            animInfo.last_time = 0;
+            animInfo.max_time = 1.0 / md5anim.frameRate;
+            
+            /* Allocate memory for animated skeleton */
+            skeleton = (struct md5_joint_t *)
+            malloc (sizeof (struct md5_joint_t) * md5anim.num_joints);
+            
+            animated = 1;
+        }
+    }
+    
+    if (!animated) {
+        printf ("[.md5anim]: no animation loaded.\n");
+    }
+	
     srand( time(NULL) );	// seed our random number generator
 	
 	//Set Up Camera
@@ -563,6 +633,15 @@ void initScene()  {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void renderScene(void) {
+	//animation variables
+	int i;
+	
+	static double curent_time = 0;
+    static double last_time = 0;
+    
+    last_time = curent_time;
+    curent_time = (double)glutGet (GLUT_ELAPSED_TIME) / 1000.0;
+	
 	// clear the render buffer
 	glDrawBuffer(GL_BACK);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -581,8 +660,62 @@ void renderScene(void) {
 	drawCharge();
 	gameBall.draw();
 	
+	if (animated){
+		/* Calculate current and next frames */
+		Animate (&md5anim, &animInfo, curent_time - last_time);
+		
+		/* Interpolate skeletons between two frames */
+		InterpolateSkeletons (md5anim.skelFrames[animInfo.curr_frame],
+							  md5anim.skelFrames[animInfo.next_frame],
+							  md5anim.num_joints,
+							  animInfo.last_time * md5anim.frameRate,
+							  skeleton);
+	}
+	else{
+		/* No animation, use bind-pose skeleton */
+		skeleton = md5file.baseSkel;
+	}
+	
+	/* Draw skeleton */
+	if( DISPLAY_SKELETON ){
+		DrawSkeleton (skeleton, md5file.num_joints);
+	}
+	
+	glColor3f (1.0f, 1.0f, 1.0f);
+	
+	if( DISPLAY_WIREFRAME ){
+		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+		glLineWidth( 2.0f );
+	} 
+	else{
+		glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+		glLineWidth( 1.0f );
+	}
+	
+	/* Draw each mesh of the model */
+	for (i = 0; i < md5file.num_meshes; ++i){
+		md5_mesh_t mesh = md5file.meshes[i];
+		
+		PrepareMesh (&mesh, skeleton);
+		
+		DrawMesh( &mesh );
+	}
+	
 	//push the back buffer to the screen
     glutSwapBuffers();
+}
+
+void cleanup() {
+    FreeModel (&md5file);
+    FreeAnim (&md5anim);
+    
+    if (animated && skeleton)
+    {
+        free (skeleton);
+        skeleton = NULL;
+    }
+    
+    FreeVertexArrays ();
 }
 
 // keyUp() ////////////////////////////////////////////////////////////
@@ -593,6 +726,10 @@ void renderScene(void) {
 void keyUp( unsigned char key, int mouseX, int mouseY ) {
 	if(key == 32) {
 		charging = false;
+		if(gameBall.location.getX() > tableX-10 && gameBall.location.getZ() < -tableZ+4 ) {
+			gameBall.direction = Vector( 1.0, 0.0, 0.0 );
+			gameBall.velocity += charge*3.0;
+		}
 		charge = 0;
 	}
 }
@@ -627,7 +764,7 @@ void normalKeysDown(unsigned char key, int x, int y) {
 void moveBall() {
 	// First, move ball forward
 		gameBall.moveForward();
-		//Next, check if ball collides with edge of table
+		//Next, check if ball collides with edges of the table
 		//for (unsigned int j = 0; j < balls.size(); j++) {	
 		if (gameBall.location.getX() > tableX-gameBall.radius) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			gameBall.reflect(Vector (-1, 0, 0));
@@ -640,6 +777,9 @@ void moveBall() {
 		}
 		else if (gameBall.location.getZ() < -tableZ+gameBall.radius) {
 			gameBall.reflect(Vector (0, 0, 1));
+		}
+		else if(gameBall.location.getX() < -tableX+5+gameBall.radius && gameBall.location.getZ() < -tableZ+5+gameBall.radius) {
+			gameBall.reflect(Vector (1, 0, 1));
 		}
 		//}
 		
@@ -719,7 +859,18 @@ void myTimer( int value ) {
 		if(charge > 3.0)
 			charge=3.0;
 	}
-		
+	
+	if(gameBall.direction.getX() < 1.0)
+		gameBall.direction = gameBall.direction + Vector( .01, 0.0, 0.0 );
+	
+	if( gameBall.direction.getX() < 0 ) {
+		gameBall.velocity -= 0.005;
+		if(gameBall.velocity <= 0) {
+			gameBall.direction = Vector(gameBall.direction.getX() * -1, gameBall.direction.getY(), gameBall.direction.getZ());
+			gameBall.velocity = .05;
+		}
+	}
+	else gameBall.velocity += 0.005;
 	
 	if (ballEnabled) {
 		moveBall();
@@ -828,7 +979,9 @@ int main( int argc, char **argv ) {
     fprintf(stdout, "[INFO]: |   OpenGL Vendor:   %40s |\n", glGetString(GL_VENDOR));
     fprintf(stdout, "[INFO]: |   GLUI Version:    %40.2f |\n", GLUI_VERSION);
     fprintf(stdout, "[INFO]: \\-------------------------------------------------------------/\n");	
-    // do some basic OpenGL setup
+    //clean up the animation stuff
+	atexit (cleanup);
+	// do some basic OpenGL setup
     initScene();
 
     // create our menu options and attach to mouse button
@@ -875,8 +1028,8 @@ int main( int argc, char **argv ) {
 	table = new Object( "table.obj" );
 	
 	// Initialize gameBall
-	gameBall = Ball();
-	gameBall.direction = Vector( 0, 0, -1);
+	gameBall = Ball( Point(tableX-20, 0.0, -tableZ+2.0), Vector(0.1, 0.0, 0.0), 2.0 );
+	gameBall.direction = Vector( 1, 0, 0 );
 	
 	// Temporary initialization; actual initialization will be done with board data
 	//CircularBoardObject tCBO(24, 0, 24, 4);
