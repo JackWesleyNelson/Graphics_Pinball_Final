@@ -540,6 +540,7 @@ void initScene()  {
 	glLightfv(GL_LIGHT7, GL_SPOT_DIRECTION, dir);
 	glLightf(GL_LIGHT7, GL_SPOT_CUTOFF, 12);
 	glLightf(GL_LIGHT7, GL_SPOT_EXPONENT, 100);
+	glEnable(GL_LIGHT7);
 	
 	//******************************************************************
     glShadeModel(GL_SMOOTH);
