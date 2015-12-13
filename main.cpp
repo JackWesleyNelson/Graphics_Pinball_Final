@@ -44,6 +44,10 @@ using namespace std;
 #include "Ball.h"
 #include "CircularBoardObject.h"
 #include "RectangularBoardObject.h"
+#include "Shader_Utils.h"
+#include "MD5/md5model.h"
+#include "MD5/md5mesh.h"
+#include "MD5/md5anim.h"
 
 // For some reason this math header fixes the abs() error
 #include <cmath>
@@ -53,6 +57,17 @@ using namespace std;
 static size_t windowWidth = 640;
 static size_t windowHeight = 480;
 static float aspectRatio;
+//animation variables
+int animated = 0;
+
+struct md5_model_t md5file;
+struct md5_anim_t md5anim;
+
+struct md5_joint_t *skeleton = NULL;
+struct anim_info_t animInfo;
+
+bool DISPLAY_WIREFRAME = false;
+bool DISPLAY_SKELETON = false;
 
 int winMain;						//Window declaration
 
@@ -577,6 +592,9 @@ void mouseMotion(int x, int y) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void initScene()  {
+	const char *filename = "models/monsters/hellknight/mesh/hellknight.md5mesh";
+	const char *animfile = "models/monsters/hellknight/animations/idle2.md5anim";
+	
     glEnable(GL_DEPTH_TEST);
 
     // tell OpenGL not to use the material system; just use whatever we 
@@ -600,10 +618,43 @@ void initScene()  {
 	glLightfv(GL_LIGHT7, GL_SPOT_DIRECTION, dir);
 	glLightf(GL_LIGHT7, GL_SPOT_CUTOFF, 12);
 	glLightf(GL_LIGHT7, GL_SPOT_EXPONENT, 100);
-	glEnable( GL_LIGHT7 );
+	glEnable(GL_LIGHT7);
 	//******************************************************************
     glShadeModel(GL_SMOOTH);
 
+	/* Load MD5 model file */
+    if (!ReadMD5Model (filename, &md5file))
+        exit (EXIT_FAILURE);
+    
+    AllocVertexArrays ();
+    
+    /* Load MD5 animation file */
+    if (animfile)
+    {
+        if (!ReadMD5Anim (animfile, &md5anim))
+        {
+            FreeAnim (&md5anim);
+        }
+        else
+        {
+            animInfo.curr_frame = 0;
+            animInfo.next_frame = 1;
+            
+            animInfo.last_time = 0;
+            animInfo.max_time = 1.0 / md5anim.frameRate;
+            
+            /* Allocate memory for animated skeleton */
+            skeleton = (struct md5_joint_t *)
+            malloc (sizeof (struct md5_joint_t) * md5anim.num_joints);
+            
+            animated = 1;
+        }
+    }
+    
+    if (!animated) {
+        printf ("[.md5anim]: no animation loaded.\n");
+    }
+	
     srand( time(NULL) );	// seed our random number generator
 	
 	//Set Up Camera
@@ -622,6 +673,15 @@ void initScene()  {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void renderScene(void) {
+	//animation variables
+	int i;
+	
+	static double curent_time = 0;
+    static double last_time = 0;
+    
+    last_time = curent_time;
+    curent_time = (double)glutGet (GLUT_ELAPSED_TIME) / 1000.0;
+	
 	// clear the render buffer
 	glDrawBuffer(GL_BACK);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -640,8 +700,62 @@ void renderScene(void) {
 	drawCharge();
 	gameBall.draw();
 	
+	if (animated){
+		/* Calculate current and next frames */
+		Animate (&md5anim, &animInfo, curent_time - last_time);
+		
+		/* Interpolate skeletons between two frames */
+		InterpolateSkeletons (md5anim.skelFrames[animInfo.curr_frame],
+							  md5anim.skelFrames[animInfo.next_frame],
+							  md5anim.num_joints,
+							  animInfo.last_time * md5anim.frameRate,
+							  skeleton);
+	}
+	else{
+		/* No animation, use bind-pose skeleton */
+		skeleton = md5file.baseSkel;
+	}
+	
+	/* Draw skeleton */
+	if( DISPLAY_SKELETON ){
+		DrawSkeleton (skeleton, md5file.num_joints);
+	}
+	
+	glColor3f (1.0f, 1.0f, 1.0f);
+	
+	if( DISPLAY_WIREFRAME ){
+		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+		glLineWidth( 2.0f );
+	} 
+	else{
+		glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+		glLineWidth( 1.0f );
+	}
+	
+	/* Draw each mesh of the model */
+	for (i = 0; i < md5file.num_meshes; ++i){
+		md5_mesh_t mesh = md5file.meshes[i];
+		
+		PrepareMesh (&mesh, skeleton);
+		
+		DrawMesh( &mesh );
+	}
+	
 	//push the back buffer to the screen
     glutSwapBuffers();
+}
+
+void cleanup() {
+    FreeModel (&md5file);
+    FreeAnim (&md5anim);
+    
+    if (animated && skeleton)
+    {
+        free (skeleton);
+        skeleton = NULL;
+    }
+    
+    FreeVertexArrays ();
 }
 
 // keyUp() ////////////////////////////////////////////////////////////
@@ -720,14 +834,28 @@ void moveBall() {
 				gameBall.reflect(Vector(0, 0, 1));
 		}
 		for(int i=23; i<=50; i++) {
-			if(ballX > i && ballZ > 48-i)
+			if(ballX > i && ballZ > 48-i) {
 				gameBall.reflect(Vector(-1, 0, -1));
+				break;
+			}
 		}
 		for(int i=28; i<=50; i++) {
-			if(ballX > i && ballZ < (-48+i) && ballZ > -20)
+			if(ballX > i && ballZ < (-48+i) && ballZ > -20){
 				gameBall.reflect(Vector(-1, 0, 1));
+				break;
+			}
 		}
-		
+		if(gameBall.direction.getX() < 1.0)
+		gameBall.direction = gameBall.direction + Vector( .03, 0.0, 0.0 );
+	
+		if( gameBall.direction.getX() < 0 ) {
+			gameBall.velocity -= 0.005;
+			if(gameBall.velocity <= 0) {
+				gameBall.direction = Vector(gameBall.direction.getX() * -1, gameBall.direction.getY(), gameBall.direction.getZ());
+				gameBall.velocity = 0.0;
+			}
+		}
+		else gameBall.velocity += 0.005;
 		//}
 		
 		// Check for and Handle collisions with objects with circular profiles
@@ -806,18 +934,6 @@ void myTimer( int value ) {
 		if(charge > 3.0)
 			charge=3.0;
 	}
-	
-	if(gameBall.direction.getX() < 1.0)
-		gameBall.direction = gameBall.direction + Vector( .01, 0.0, 0.0 );
-	
-	if( gameBall.direction.getX() < 0 ) {
-		gameBall.velocity -= 0.005;
-		if(gameBall.velocity <= 0) {
-			gameBall.direction = Vector(gameBall.direction.getX() * -1, gameBall.direction.getY(), gameBall.direction.getZ());
-			gameBall.velocity = 0.0;
-		}
-	}
-	else gameBall.velocity += 0.005;
 	
 	if (ballEnabled) {
 		moveBall();
@@ -926,7 +1042,9 @@ int main( int argc, char **argv ) {
     fprintf(stdout, "[INFO]: |   OpenGL Vendor:   %40s |\n", glGetString(GL_VENDOR));
     fprintf(stdout, "[INFO]: |   GLUI Version:    %40.2f |\n", GLUI_VERSION);
     fprintf(stdout, "[INFO]: \\-------------------------------------------------------------/\n");	
-    // do some basic OpenGL setup
+    //clean up the animation stuff
+	atexit (cleanup);
+	// do some basic OpenGL setup
     initScene();
 
     // create our menu options and attach to mouse button
