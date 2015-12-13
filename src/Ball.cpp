@@ -85,7 +85,7 @@ void Ball::reflect( Vector n ) {
 	Vector outVector = direction - (2 * dot(direction, n)) * n;
 	outVector.normalize();
 	direction = outVector;
-	velocity/=2;
+	velocity *= 0.75;
 	moveForward();
 }
 

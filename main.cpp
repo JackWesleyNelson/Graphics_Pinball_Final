@@ -291,6 +291,46 @@ void drawBorders() {
 			glTexCoord2f(1.0f, 0.0f);
 			glVertex3f(-tableX, 1, -tableZ+5);
 			
+			glNormal3f( -1.0, 0.0 , -1.0 );
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(tableX-5, 0, 5);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(tableX-5, 1, 5);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(tableX-25, 1, tableZ);
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(tableX-25, 0, tableZ);
+			
+			glNormal3f( 0.0, 1.0 , 0.0 );
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(tableX-5, 1, 5);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(tableX-25, 1, tableZ);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(tableX, 1, tableZ);
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(tableX, 1, 5);
+			
+			glNormal3f( -1.0, 0.0 , 1.0 );
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(tableX-5, 0, -5);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(tableX-5, 1, -5);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(tableX-20, 1, -20);
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(tableX-20, 0, -20);
+			
+			glNormal3f( 0.0, 1.0 , 0.0 );
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(tableX-5, 1, -5);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(tableX-20, 1, -20);
+			glTexCoord2f(8.0f, 1.0f);
+			glVertex3f(tableX, 1, -20);
+			glTexCoord2f(8.0f, 0.0f);
+			glVertex3f(tableX, 1, -5);
+			
 		}; glEnd();
 		glDisable( GL_TEXTURE_2D );
 	}; glPopMatrix();
@@ -652,21 +692,42 @@ void moveBall() {
 		gameBall.moveForward();
 		//Next, check if ball collides with edges of the table
 		//for (unsigned int j = 0; j < balls.size(); j++) {	
-		if (gameBall.location.getX() > tableX-gameBall.radius) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		float ballX = gameBall.location.getX();
+		float ballZ = gameBall.location.getZ();
+		float rad = gameBall.radius;
+		
+		//cout << ballX << " " << ballZ << endl;
+		
+		if (ballX > tableX-rad) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			gameBall.reflect(Vector (-1, 0, 0));
 		}
-		else if (gameBall.location.getX() < -tableX+gameBall.radius) {
+		else if (ballX < -tableX+rad) {
 			gameBall.reflect(Vector (1, 0, 0));
 		}
-		else if (gameBall.location.getZ() > tableZ-gameBall.radius) {
+		else if (ballZ > tableZ-rad) {
 			gameBall.reflect(Vector (0, 0, -1));
 		}
-		else if (gameBall.location.getZ() < -tableZ+gameBall.radius) {
+		else if (ballZ < -tableZ+rad) {
 			gameBall.reflect(Vector (0, 0, 1));
 		}
-		else if(gameBall.location.getX() < -tableX+5+gameBall.radius && gameBall.location.getZ() < -tableZ+5+gameBall.radius) {
+		else if(ballX < -tableX+5+rad && ballZ < -tableZ+5+rad) {
 			gameBall.reflect(Vector (1, 0, 1));
 		}
+		else if(ballX > -tableX+15 /*&& ballX < tableX-20*/) {
+			if( ballZ < -tableZ+5 && ballZ > -tableZ+2)
+				gameBall.reflect(Vector(0, 0, -1));
+			else if( ballZ < -tableZ+8 && ballZ > -tableZ+5)
+				gameBall.reflect(Vector(0, 0, 1));
+		}
+		for(int i=23; i<=50; i++) {
+			if(ballX > i && ballZ > 48-i)
+				gameBall.reflect(Vector(-1, 0, -1));
+		}
+		for(int i=28; i<=50; i++) {
+			if(ballX > i && ballZ < (-48+i) && ballZ > -20)
+				gameBall.reflect(Vector(-1, 0, 1));
+		}
+		
 		//}
 		
 		// Check for and Handle collisions with objects with circular profiles
@@ -753,7 +814,7 @@ void myTimer( int value ) {
 		gameBall.velocity -= 0.005;
 		if(gameBall.velocity <= 0) {
 			gameBall.direction = Vector(gameBall.direction.getX() * -1, gameBall.direction.getY(), gameBall.direction.getZ());
-			gameBall.velocity = .05;
+			gameBall.velocity = 0.0;
 		}
 	}
 	else gameBall.velocity += 0.005;
