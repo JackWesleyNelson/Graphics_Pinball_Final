@@ -92,7 +92,7 @@ GLuint textures[10];
 
 //Game Variables
 bool started, animating, charging, LbumpOn = false, RbumpOn = false;
-float charge = 0;
+float charge = 0, score = 1000;
 Point Lbump = Point( 42.5, 0.0, 10.0 ), Rbump = Point( 42.5, 0.0, -10.0 );
 
 //Ball object (can be replaced by system of balls for multi-ball system)
@@ -465,6 +465,34 @@ void drawTitle() {
 	
 }
 
+void drawScore() {
+	glDisable(GL_LIGHTING);
+	char title[64] = "SCORE:";
+	char s[6];
+	sprintf(s, "%f", score);
+	
+	glPushMatrix(); {
+	
+		// where we want it written
+		glRotatef(90, 0, 1, 0);
+		glTranslatef(-30, 10, -tableZ - 35);
+	
+		// how big we want it
+		glPushMatrix(); {
+			glScalef(.05, .05, .05);
+			for (int c = 0; title[c] != 0; ++c)
+				glutStrokeCharacter(GLUT_STROKE_ROMAN, title[c]);
+		}; glPopMatrix();
+		glTranslatef(25, 0, 0);
+		glPushMatrix(); {
+			glScalef(.05, .05, .05);
+			for(int i = 0; i < 6; i++)
+				glutStrokeCharacter(GLUT_STROKE_ROMAN, s[i]);
+		}; glPopMatrix();
+	}; glPopMatrix();
+	glEnable(GL_LIGHTING);
+}
+
 //drawCharge()
 //////////////////////////////////////////////////////////////
 //
@@ -726,6 +754,8 @@ void renderScene(void) {
 		drawTitle();
 	
 	glRotatef( -10, 0, 0, 1 );
+	score++;
+	drawScore();
 	//Draw everything on the table
 	drawCharge();
 	drawBumpers();
@@ -839,36 +869,35 @@ void normalKeysDown(unsigned char key, int x, int y) {
 }
 
 void checkBumpers( float v ) {
-	
 	float rad = gameBall.radius;
-	if(gameBall.direction.getX() > 0) {
-	double temp1 = sqrt(pow(gameBall.location.getX() - Lbump.getX(), 2)
-		+ pow(gameBall.location.getY() - Lbump.getY(), 2)
-		+ pow(gameBall.location.getZ() - Lbump.getZ(), 2));
-	double sum1 = rad + 2.5;
-	if (temp1 < sum1) {
-		gameBall.moveBackward();		
-		Vector normal1(gameBall.location.getX() - Lbump.getX(),
-			gameBall.location.getY() - Lbump.getY(),
-			gameBall.location.getZ() - Lbump.getZ());
-		normal1.normalize();	
-		gameBall.velocity += v;
-		gameBall.reflect(normal1);
-	}
-	
-	double temp2 = sqrt(pow(gameBall.location.getX() - Rbump.getX(), 2)
-		+ pow(gameBall.location.getY() - Rbump.getY(), 2)
-		+ pow(gameBall.location.getZ() - Rbump.getZ(), 2));
-	double sum2 = rad + 2.5;
-	if (temp2 < sum1) {
-		gameBall.moveBackward();		
-		Vector normal2(gameBall.location.getX() - Rbump.getX(),
-			gameBall.location.getY() - Rbump.getY(),
-			gameBall.location.getZ() - Rbump.getZ());
-		normal2.normalize();
-		gameBall.velocity += v;		
-		gameBall.reflect(normal2);
-	}
+		if(gameBall.direction.getX() > 0) {
+		double temp1 = sqrt(pow(gameBall.location.getX() - Lbump.getX(), 2)
+			+ pow(gameBall.location.getY() - Lbump.getY(), 2)
+			+ pow(gameBall.location.getZ() - Lbump.getZ(), 2));
+		double sum1 = rad + 2.5;
+		if (temp1 < sum1) {
+			gameBall.moveBackward();		
+			Vector normal1(gameBall.location.getX() - Lbump.getX(),
+				gameBall.location.getY() - Lbump.getY(),
+				gameBall.location.getZ() - Lbump.getZ());
+			normal1.normalize();	
+			gameBall.velocity += v;
+			gameBall.reflect(normal1);
+		}
+		
+		double temp2 = sqrt(pow(gameBall.location.getX() - Rbump.getX(), 2)
+			+ pow(gameBall.location.getY() - Rbump.getY(), 2)
+			+ pow(gameBall.location.getZ() - Rbump.getZ(), 2));
+		double sum2 = rad + 2.5;
+		if (temp2 < sum1) {
+			gameBall.moveBackward();		
+			Vector normal2(gameBall.location.getX() - Rbump.getX(),
+				gameBall.location.getY() - Rbump.getY(),
+				gameBall.location.getZ() - Rbump.getZ());
+			normal2.normalize();
+			gameBall.velocity += v;		
+			gameBall.reflect(normal2);
+		}	
 	}
 }
 
