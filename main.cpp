@@ -91,8 +91,9 @@ float tableX = 50.0f, tableZ = 25.0f;
 GLuint textures[10];
 
 //Game Variables
-bool started, animating, charging;
+bool started, animating, charging, LbumpOn = false, RbumpOn = false;
 float charge = 0;
+Point Lbump = Point( 42.5, 0.0, 10.0 ), Rbump = Point( 42.5, 0.0, -10.0 );
 
 //Ball object (can be replaced by system of balls for multi-ball system)
 Ball gameBall;
@@ -116,6 +117,13 @@ bool ballEnabled = true;  // Current setting = false so it shouldn't interfere w
 ////////////////////////////////////////////////////////////////////////////////
 float getRand() {
     return rand() / (float)RAND_MAX;
+}
+
+//Initialize a new game ball
+void initialize() {
+	gameBall = Ball( Point(tableX-20, 0.0, -tableZ+2.0), Vector(0.1, 0.0, 0.0), 2.0 );
+	gameBall.direction = Vector( 1, 0, 0 );
+	gameBall.velocity = 0.0;
 }
 
 //drawGrid()
@@ -486,6 +494,28 @@ void drawCharge() {
 	}; glPopMatrix();
 }
 
+void drawBumpers() {
+	glPushMatrix(); {
+		glPushMatrix(); {
+			glTranslatef( Lbump.getX(), Lbump.getY(), Lbump.getZ() );
+			GLUquadric *quad1;
+			quad1 = gluNewQuadric();
+			gluQuadricDrawStyle( quad1, GLU_FILL);
+			gluSphere( quad1 , 2.5, 10, 10);
+			gluDeleteQuadric(quad1);
+		}; glPopMatrix();
+		
+		glPushMatrix(); {
+			glTranslatef( Rbump.getX(), Rbump.getY(), Rbump.getZ() );
+			GLUquadric *quad2;
+			quad2 = gluNewQuadric();
+			gluQuadricDrawStyle( quad2, GLU_FILL);
+			gluSphere( quad2 , 2.5, 10, 10);
+			gluDeleteQuadric(quad2);
+		}; glPopMatrix();
+	}; glPopMatrix();
+}
+
 //generateEnvironmentDL()
 //////////////////////////////////////////////////////////////
 //
@@ -698,6 +728,7 @@ void renderScene(void) {
 	glRotatef( -10, 0, 0, 1 );
 	//Draw everything on the table
 	drawCharge();
+	drawBumpers();
 	gameBall.draw();
 	
 	if (animated){
@@ -772,6 +803,12 @@ void keyUp( unsigned char key, int mouseX, int mouseY ) {
 		}
 		charge = 0;
 	}
+	if (key == 'z' || key == 'Z') {
+		LbumpOn = false;
+	}
+	if (key == '/') {
+		RbumpOn = false;
+	}
 }
 
 // normalKeysDown() ////////////////////////////////////////////////////////////
@@ -792,6 +829,46 @@ void normalKeysDown(unsigned char key, int x, int y) {
 		if(key == 32) {
 			charging = true;
 		}
+		if (key == 'z' || key == 'Z') {
+			LbumpOn = true;
+		}
+		if (key == '/') {
+			RbumpOn = true;
+		}
+	}
+}
+
+void checkBumpers( float v ) {
+	
+	float rad = gameBall.radius;
+	if(gameBall.direction.getX() > 0) {
+	double temp1 = sqrt(pow(gameBall.location.getX() - Lbump.getX(), 2)
+		+ pow(gameBall.location.getY() - Lbump.getY(), 2)
+		+ pow(gameBall.location.getZ() - Lbump.getZ(), 2));
+	double sum1 = rad + 2.5;
+	if (temp1 < sum1) {
+		gameBall.moveBackward();		
+		Vector normal1(gameBall.location.getX() - Lbump.getX(),
+			gameBall.location.getY() - Lbump.getY(),
+			gameBall.location.getZ() - Lbump.getZ());
+		normal1.normalize();	
+		gameBall.velocity += v;
+		gameBall.reflect(normal1);
+	}
+	
+	double temp2 = sqrt(pow(gameBall.location.getX() - Rbump.getX(), 2)
+		+ pow(gameBall.location.getY() - Rbump.getY(), 2)
+		+ pow(gameBall.location.getZ() - Rbump.getZ(), 2));
+	double sum2 = rad + 2.5;
+	if (temp2 < sum1) {
+		gameBall.moveBackward();		
+		Vector normal2(gameBall.location.getX() - Rbump.getX(),
+			gameBall.location.getY() - Rbump.getY(),
+			gameBall.location.getZ() - Rbump.getZ());
+		normal2.normalize();
+		gameBall.velocity += v;		
+		gameBall.reflect(normal2);
+	}
 	}
 }
 
@@ -800,117 +877,116 @@ void normalKeysDown(unsigned char key, int x, int y) {
 //  Handles collision detection and position updates
 //
 ////////////////////////////////////////////////////////////////////////////////
-
 void moveBall() {
-	// First, move ball forward
-		gameBall.moveForward();
-		//Next, check if ball collides with edges of the table
-		//for (unsigned int j = 0; j < balls.size(); j++) {	
-		float ballX = gameBall.location.getX();
-		float ballZ = gameBall.location.getZ();
-		float rad = gameBall.radius;
-		
-		//cout << ballX << " " << ballZ << endl;
-		
-		if (ballX > tableX-rad) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			gameBall.reflect(Vector (-1, 0, 0));
-		}
-		else if (ballX < -tableX+rad) {
-			gameBall.reflect(Vector (1, 0, 0));
-		}
-		else if (ballZ > tableZ-rad) {
-			gameBall.reflect(Vector (0, 0, -1));
-		}
-		else if (ballZ < -tableZ+rad) {
-			gameBall.reflect(Vector (0, 0, 1));
-		}
-		else if(ballX < -tableX+5+rad && ballZ < -tableZ+5+rad) {
-			gameBall.reflect(Vector (1, 0, 1));
-		}
-		else if(ballX > -tableX+15 /*&& ballX < tableX-20*/) {
-			if( ballZ < -tableZ+5 && ballZ > -tableZ+2)
-				gameBall.reflect(Vector(0, 0, -1));
-			else if( ballZ < -tableZ+8 && ballZ > -tableZ+5)
-				gameBall.reflect(Vector(0, 0, 1));
-		}
-		for(int i=23; i<=50; i++) {
-			if(ballX > i && ballZ > 48-i) {
-				gameBall.reflect(Vector(-1, 0, -1));
-				break;
-			}
-		}
-		for(int i=28; i<=50; i++) {
-			if(ballX > i && ballZ < (-48+i) && ballZ > -20){
-				gameBall.reflect(Vector(-1, 0, 1));
-				break;
-			}
-		}
-		if(gameBall.direction.getX() < 1.0)
+	if(gameBall.direction.getX() < 1.0)
 		gameBall.direction = gameBall.direction + Vector( .03, 0.0, 0.0 );
+	if( gameBall.direction.getX() < 0 ) {
+		gameBall.velocity -= 0.005;
+		if(gameBall.velocity <= 0) {
+			gameBall.direction = Vector(gameBall.direction.getX() * -1, gameBall.direction.getY(), gameBall.direction.getZ());
+			gameBall.velocity = 0.0;
+		}
+	}
+	else gameBall.velocity += 0.005;
+	// First, move ball forward
+	gameBall.moveForward();
+	//Next, check if ball collides with edges of the table
+	//for (unsigned int j = 0; j < balls.size(); j++) {	
+	float rad = gameBall.radius;
 	
-		if( gameBall.direction.getX() < 0 ) {
-			gameBall.velocity -= 0.005;
-			if(gameBall.velocity <= 0) {
-				gameBall.direction = Vector(gameBall.direction.getX() * -1, gameBall.direction.getY(), gameBall.direction.getZ());
-				gameBall.velocity = 0.0;
-			}
+	//cout << gameBall.location.getX() << " " << gameBall.location.getZ() << endl;
+	
+	if (gameBall.location.getX() > tableX-rad && (gameBall.location.getZ() > 5 || gameBall.location.getZ() < -5)) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		gameBall.reflect(Vector (-1, 0, 0));
+	}
+	else if (gameBall.location.getX() < -tableX+rad) {
+		gameBall.reflect(Vector (1, 0, 0));
+	}
+	else if (gameBall.location.getZ() > tableZ-rad) {
+		gameBall.reflect(Vector (0, 0, -1));
+	}
+	else if (gameBall.location.getZ() < -tableZ+rad) {
+		gameBall.reflect(Vector (0, 0, 1));
+	}
+	else if(gameBall.location.getX() < -tableX+5+rad && gameBall.location.getZ() < -tableZ+5+rad) {
+		gameBall.reflect(Vector (1, 0, 1));
+	}
+	else if(gameBall.location.getX() > -tableX+15 /*&& gameBall.location.getX() < tableX-20*/) {
+		if( gameBall.location.getZ() < -tableZ+5 && gameBall.location.getZ() > -tableZ+2)
+			gameBall.reflect(Vector(0, 0, -1));
+		else if( gameBall.location.getZ() < -tableZ+8 && gameBall.location.getZ() > -tableZ+5)
+			gameBall.reflect(Vector(0, 0, 1));
+	}
+	for(int i=23; i<=45; i++) {
+		if(gameBall.location.getX() > i && gameBall.location.getZ() > 48-i) {
+			gameBall.reflect(Vector(-1, 0, -1));
+			break;
 		}
-		else gameBall.velocity += 0.005;
-		//}
+	}
+	for(int i=28; i<=45; i++) {
+		if(gameBall.location.getX() > i && gameBall.location.getZ() < (-48+i) && gameBall.location.getZ() > -20){
+			gameBall.reflect(Vector(-1, 0, 1));
+			break;
+		}
+	}
+	//}
+	
+	checkBumpers( 0 );
+	
+	// Check for and Handle collisions with objects with circular profiles
+	for (int i = 0; i < circular_objects.size(); i++) { 
+		double tempDist = sqrt(pow(gameBall.location.getX() - circular_objects.at(i).getX(), 2)
+					+ pow(gameBall.location.getY() - circular_objects.at(i).getY(), 2)
+					+ pow(gameBall.location.getZ() - circular_objects.at(i).getZ(), 2));
+		double summedRadii = gameBall.radius + circular_objects.at(i).getRadius();
 		
-		// Check for and Handle collisions with objects with circular profiles
-		for (int i = 0; i < circular_objects.size(); i++) { 
-			double tempDist = sqrt(pow(gameBall.location.getX() - circular_objects.at(i).getX(), 2)
-						+ pow(gameBall.location.getY() - circular_objects.at(i).getY(), 2)
-						+ pow(gameBall.location.getZ() - circular_objects.at(i).getZ(), 2));
-			double summedRadii = gameBall.radius + circular_objects.at(i).getRadius();
-			
-			if (tempDist < summedRadii) {
-				gameBall.moveBackward();
-						
-				Vector normal_ji(gameBall.location.getX() - circular_objects.at(i).getX(), 
-					gameBall.location.getY() - circular_objects.at(i).getY(), gameBall.location.getZ() - circular_objects.at(i).getZ());
-				normal_ji.normalize();
-						
-				gameBall.reflect(normal_ji);
-			}
+		if (tempDist < summedRadii) {
+			gameBall.moveBackward();
+					
+			Vector normal_ji(gameBall.location.getX() - circular_objects.at(i).getX(), gameBall.location.getY() - circular_objects.at(i).getY(), gameBall.location.getZ() - circular_objects.at(i).getZ());
+			normal_ji.normalize();			
+			gameBall.reflect(normal_ji);
 		}
+	}
 		
-		// Check for and handle collisions with objects with rectangular profiles
-		for (int i = 0; i < rectangular_objects.size(); i++) {
-			if (abs(gameBall.location.getX() - rectangular_objects.at(i).getX()) < gameBall.radius) {
-				gameBall.moveBackward();
-				Vector tempNormal(-1, 0, 0);
-				Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
-				outVector.normalize();
-				gameBall.direction = outVector;
-				gameBall.moveForward();	
-			}
-			else if (abs(gameBall.location.getX() - (rectangular_objects.at(i).getX() + rectangular_objects.at(i).getDeltaX())) < gameBall.radius) {
-				gameBall.moveBackward();
-				Vector tempNormal(1, 0, 0);
-				Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
-				outVector.normalize();
-				gameBall.direction = outVector;
-				gameBall.moveForward();
-			}
-			else if (abs(gameBall.location.getZ() - rectangular_objects.at(i).getZ()) < gameBall.radius) {
-				gameBall.moveBackward();
-				Vector tempNormal(0, 0, -1);
-				Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
-				outVector.normalize();
-				gameBall.direction = outVector;
-				gameBall.moveForward();	
-			}
-			else if (abs(gameBall.location.getZ() - (rectangular_objects.at(i).getZ() + rectangular_objects.at(i).getDeltaZ())) < gameBall.radius) {
-				gameBall.moveBackward();
-				Vector tempNormal(0, 0, 1);
-				Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
-				outVector.normalize();
-				gameBall.direction = outVector;
-				gameBall.moveForward();
-			}
+	// Check for and handle collisions with objects with rectangular profiles
+	for (int i = 0; i < rectangular_objects.size(); i++) {
+		if (abs(gameBall.location.getX() - rectangular_objects.at(i).getX()) < gameBall.radius) {
+			gameBall.moveBackward();
+			Vector tempNormal(-1, 0, 0);
+			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+			outVector.normalize();
+			gameBall.direction = outVector;
+			gameBall.moveForward();	
 		}
+		else if (abs(gameBall.location.getX() - (rectangular_objects.at(i).getX() + rectangular_objects.at(i).getDeltaX())) < gameBall.radius) {
+			gameBall.moveBackward();
+			Vector tempNormal(1, 0, 0);
+			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+			outVector.normalize();
+			gameBall.direction = outVector;
+			gameBall.moveForward();
+		}
+		else if (abs(gameBall.location.getZ() - rectangular_objects.at(i).getZ()) < gameBall.radius) {
+			gameBall.moveBackward();
+			Vector tempNormal(0, 0, -1);
+			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+			outVector.normalize();
+			gameBall.direction = outVector;
+			gameBall.moveForward();	
+		}
+		else if (abs(gameBall.location.getZ() - (rectangular_objects.at(i).getZ() + rectangular_objects.at(i).getDeltaZ())) < gameBall.radius) {
+			gameBall.moveBackward();
+			Vector tempNormal(0, 0, 1);
+			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
+			outVector.normalize();
+			gameBall.direction = outVector;
+			gameBall.moveForward();
+		}
+	}
+	
+	if(gameBall.location.getX() > tableX)
+		initialize();
 }
 // myTimer() ////////////////////////////////////////////////////////////////////
 //
@@ -933,6 +1009,23 @@ void myTimer( int value ) {
 		charge+= 0.02;
 		if(charge > 3.0)
 			charge=3.0;
+	}
+	
+	if(LbumpOn && Lbump.getX() > 39) {
+		Lbump += Vector( -0.7, 0.0, -0.7);
+		checkBumpers( 4 );
+	}
+	else if( !LbumpOn && Lbump.getX() < 42.5) {
+		Lbump += Vector( 0.7, 0.0, 0.7);
+		checkBumpers( 4 );
+	}
+	if(RbumpOn && Rbump.getX() > 39) {
+		Rbump += Vector( -0.7, 0.0, 0.7);
+		checkBumpers( 4 );
+	}
+	else if( !RbumpOn && Rbump.getX() < 42.5) {
+		Rbump += Vector( 0.7, 0.0, -0.7);
+		checkBumpers( 4 );
 	}
 	
 	if (ballEnabled) {
@@ -1091,8 +1184,7 @@ int main( int argc, char **argv ) {
 	table = new Object( "table.obj" );
 	
 	// Initialize gameBall
-	gameBall = Ball( Point(tableX-20, 0.0, -tableZ+2.0), Vector(0.1, 0.0, 0.0), 2.0 );
-	gameBall.direction = Vector( 1, 0, 0 );
+	initialize();
 	
 	// Temporary initialization; actual initialization will be done with board data
 	//CircularBoardObject tCBO(24, 0, 24, 4);
