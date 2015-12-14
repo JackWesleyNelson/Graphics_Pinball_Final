@@ -92,7 +92,7 @@ GLuint textures[10];
 
 //Game Variables
 bool started, animating, charging, LbumpOn = false, RbumpOn = false;
-float charge = 0, score = 1000;
+float charge = 0, score = 0;
 Point Lbump = Point( 42.5, 0.0, 10.0 ), Rbump = Point( 42.5, 0.0, -10.0 );
 
 //Ball object (can be replaced by system of balls for multi-ball system)
@@ -544,6 +544,55 @@ void drawBumpers() {
 	}; glPopMatrix();
 }
 
+void drawFigure() {
+	static double curent_time = 0;
+    static double last_time = 0;
+    
+    last_time = curent_time;
+    curent_time = (double)glutGet (GLUT_ELAPSED_TIME) / 1000.0;
+	
+	if (animated){
+		/* Calculate current and next frames */
+		Animate (&md5anim, &animInfo, curent_time - last_time);
+		
+		/* Interpolate skeletons between two frames */
+		InterpolateSkeletons (md5anim.skelFrames[animInfo.curr_frame],
+							  md5anim.skelFrames[animInfo.next_frame],
+							  md5anim.num_joints,
+							  animInfo.last_time * md5anim.frameRate,
+							  skeleton);
+	}
+	else{
+		/* No animation, use bind-pose skeleton */
+		skeleton = md5file.baseSkel;
+	}
+	
+	/* Draw skeleton */
+	if( DISPLAY_SKELETON ){
+		DrawSkeleton (skeleton, md5file.num_joints);
+	}
+	
+	glColor3f (1.0f, 1.0f, 1.0f);
+	
+	if( DISPLAY_WIREFRAME ){
+		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+		glLineWidth( 2.0f );
+	} 
+	else{
+		glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+		glLineWidth( 1.0f );
+	}
+	
+	/* Draw each mesh of the model */
+	for (int i = 0; i < md5file.num_meshes; ++i){
+		md5_mesh_t mesh = md5file.meshes[i];
+		
+		PrepareMesh (&mesh, skeleton);
+		
+		DrawMesh( &mesh );
+	}
+}
+
 //generateEnvironmentDL()
 //////////////////////////////////////////////////////////////
 //
@@ -734,12 +783,6 @@ void renderScene(void) {
 	//animation variables
 	int i;
 	
-	static double curent_time = 0;
-    static double last_time = 0;
-    
-    last_time = curent_time;
-    curent_time = (double)glutGet (GLUT_ELAPSED_TIME) / 1000.0;
-	
 	// clear the render buffer
 	glDrawBuffer(GL_BACK);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -754,53 +797,21 @@ void renderScene(void) {
 		drawTitle();
 	
 	glRotatef( -10, 0, 0, 1 );
-	score++;
 	drawScore();
 	//Draw everything on the table
 	drawCharge();
 	drawBumpers();
+	for (int i = 0; i < circular_objects.size(); i++) {
+		glPushMatrix(); {
+			circular_objects[i].draw();
+			glTranslatef( circular_objects[i].getX(), circular_objects[i].getRadius(), circular_objects[i].getZ() );
+			glRotatef( -90, 1, 0, 0 );
+			float scale = 0.05 + (circular_objects[i].getRadius() - 1.0 ) / 0.5 * 0.01;
+			glScalef( scale, scale, scale );
+			drawFigure();
+		}; glPopMatrix();
+	}
 	gameBall.draw();
-	
-	if (animated){
-		/* Calculate current and next frames */
-		Animate (&md5anim, &animInfo, curent_time - last_time);
-		
-		/* Interpolate skeletons between two frames */
-		InterpolateSkeletons (md5anim.skelFrames[animInfo.curr_frame],
-							  md5anim.skelFrames[animInfo.next_frame],
-							  md5anim.num_joints,
-							  animInfo.last_time * md5anim.frameRate,
-							  skeleton);
-	}
-	else{
-		/* No animation, use bind-pose skeleton */
-		skeleton = md5file.baseSkel;
-	}
-	
-	/* Draw skeleton */
-	if( DISPLAY_SKELETON ){
-		DrawSkeleton (skeleton, md5file.num_joints);
-	}
-	
-	glColor3f (1.0f, 1.0f, 1.0f);
-	
-	if( DISPLAY_WIREFRAME ){
-		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
-		glLineWidth( 2.0f );
-	} 
-	else{
-		glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
-		glLineWidth( 1.0f );
-	}
-	
-	/* Draw each mesh of the model */
-	for (i = 0; i < md5file.num_meshes; ++i){
-		md5_mesh_t mesh = md5file.meshes[i];
-		
-		PrepareMesh (&mesh, skeleton);
-		
-		DrawMesh( &mesh );
-	}
 	
 	//push the back buffer to the screen
     glutSwapBuffers();
@@ -870,7 +881,7 @@ void normalKeysDown(unsigned char key, int x, int y) {
 
 void checkBumpers( float v ) {
 	float rad = gameBall.radius;
-		if(gameBall.direction.getX() > 0) {
+	if(gameBall.direction.getX() > 0) {
 		double temp1 = sqrt(pow(gameBall.location.getX() - Lbump.getX(), 2)
 			+ pow(gameBall.location.getY() - Lbump.getY(), 2)
 			+ pow(gameBall.location.getZ() - Lbump.getZ(), 2));
@@ -964,23 +975,25 @@ void moveBall() {
 	
 	// Check for and Handle collisions with objects with circular profiles
 	for (int i = 0; i < circular_objects.size(); i++) { 
-		double tempDist = sqrt(pow(gameBall.location.getX() - circular_objects.at(i).getX(), 2)
-					+ pow(gameBall.location.getY() - circular_objects.at(i).getY(), 2)
-					+ pow(gameBall.location.getZ() - circular_objects.at(i).getZ(), 2));
-		double summedRadii = gameBall.radius + circular_objects.at(i).getRadius();
+		double tempDist = sqrt(pow(gameBall.location.getX() - circular_objects[i].getX(), 2)
+					+ pow(gameBall.location.getY() - circular_objects[i].getY(), 2)
+					+ pow(gameBall.location.getZ() - circular_objects[i].getZ(), 2));
+		double summedRadii = gameBall.radius + circular_objects[i].getRadius();
 		
 		if (tempDist < summedRadii) {
 			gameBall.moveBackward();
 					
-			Vector normal_ji(gameBall.location.getX() - circular_objects.at(i).getX(), gameBall.location.getY() - circular_objects.at(i).getY(), gameBall.location.getZ() - circular_objects.at(i).getZ());
-			normal_ji.normalize();			
+			Vector normal_ji(gameBall.location.getX() - circular_objects[i].getX(), gameBall.location.getY() - circular_objects[i].getY(), gameBall.location.getZ() - circular_objects[i].getZ());
+			normal_ji.normalize();
+			gameBall.velocity += 2;			
 			gameBall.reflect(normal_ji);
+			score+=10;
 		}
 	}
 		
 	// Check for and handle collisions with objects with rectangular profiles
 	for (int i = 0; i < rectangular_objects.size(); i++) {
-		if (abs(gameBall.location.getX() - rectangular_objects.at(i).getX()) < gameBall.radius) {
+		if (abs(gameBall.location.getX() - rectangular_objects[i].getX()) < gameBall.radius) {
 			gameBall.moveBackward();
 			Vector tempNormal(-1, 0, 0);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -988,7 +1001,7 @@ void moveBall() {
 			gameBall.direction = outVector;
 			gameBall.moveForward();	
 		}
-		else if (abs(gameBall.location.getX() - (rectangular_objects.at(i).getX() + rectangular_objects.at(i).getDeltaX())) < gameBall.radius) {
+		else if (abs(gameBall.location.getX() - (rectangular_objects[i].getX() + rectangular_objects[i].getDeltaX())) < gameBall.radius) {
 			gameBall.moveBackward();
 			Vector tempNormal(1, 0, 0);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -996,7 +1009,7 @@ void moveBall() {
 			gameBall.direction = outVector;
 			gameBall.moveForward();
 		}
-		else if (abs(gameBall.location.getZ() - rectangular_objects.at(i).getZ()) < gameBall.radius) {
+		else if (abs(gameBall.location.getZ() - rectangular_objects[i].getZ()) < gameBall.radius) {
 			gameBall.moveBackward();
 			Vector tempNormal(0, 0, -1);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -1004,7 +1017,7 @@ void moveBall() {
 			gameBall.direction = outVector;
 			gameBall.moveForward();	
 		}
-		else if (abs(gameBall.location.getZ() - (rectangular_objects.at(i).getZ() + rectangular_objects.at(i).getDeltaZ())) < gameBall.radius) {
+		else if (abs(gameBall.location.getZ() - (rectangular_objects[i].getZ() + rectangular_objects[i].getDeltaZ())) < gameBall.radius) {
 			gameBall.moveBackward();
 			Vector tempNormal(0, 0, 1);
 			Vector outVector = gameBall.direction - (2 * dot(gameBall.direction, tempNormal)) * tempNormal;
@@ -1046,7 +1059,7 @@ void myTimer( int value ) {
 	}
 	else if( !LbumpOn && Lbump.getX() < 42.5) {
 		Lbump += Vector( 0.7, 0.0, 0.7);
-		checkBumpers( 4 );
+		checkBumpers( 0 );
 	}
 	if(RbumpOn && Rbump.getX() > 39) {
 		Rbump += Vector( -0.7, 0.0, 0.7);
@@ -1054,7 +1067,7 @@ void myTimer( int value ) {
 	}
 	else if( !RbumpOn && Rbump.getX() < 42.5) {
 		Rbump += Vector( 0.7, 0.0, -0.7);
-		checkBumpers( 4 );
+		checkBumpers( 0 );
 	}
 	
 	if (ballEnabled) {
@@ -1216,8 +1229,9 @@ int main( int argc, char **argv ) {
 	initialize();
 	
 	// Temporary initialization; actual initialization will be done with board data
-	//CircularBoardObject tCBO(24, 0, 24, 4);
-	//circular_objects.push_back(tCBO);
+	circular_objects.push_back(CircularBoardObject(0, 0, 0, 2.0));
+	//circular_objects.push_back(CircularBoardObject(10, 0, 10, 2.5));
+	//circular_objects.push_back(CircularBoardObject(-10, 0, -10, 3.0));
 	//RectangularBoardObject tRBO(8, 0, 8, 4, 4);
 	//rectangular_objects.push_back(tRBO);
 	started = false;

@@ -12,6 +12,7 @@ public:
 	void setZ(double zt);
 	double getRadius();
 	void setRadius(double rt);
+	void draw();
 	
 private:
 	double x, y, z;
