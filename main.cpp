@@ -87,11 +87,11 @@ vector<CircularBoardObject> circular_objects;
 vector<RectangularBoardObject> rectangular_objects;
 
 // Current setup for testing
-bool ballEnabled = false;  // Current setting = false so it shouldn't interfere with anything else
+bool ballEnabled = true;  // Current setting = false so it shouldn't interfere with anything else
 float positiveXTableWall = 50;
 float negativeXTableWall = -50;
 float positiveZTableWall = 50;
-float negativeZTableWall = -50;;
+float negativeZTableWall = -50;
 
 
 // END OF GLOBAL VARIABLES
