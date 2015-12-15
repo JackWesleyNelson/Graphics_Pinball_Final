@@ -92,6 +92,13 @@ float tableX = 50.0f, tableZ = 25.0f;
 
 //Textures
 GLuint textures[10];
+//Material variables
+float no_mat[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+float mat_ambient[4] = {0.2f, 0.7f, 0.9f, 1.0f};
+float mat_diffuse[4] = {0.1f, 0.5f, 0.8f, 1.0f};
+float mat_specular[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+float low_shininess = 5.0f;
+
 
 //Game Variables
 bool started, animating, charging, LbumpOn = false, RbumpOn = false;
@@ -534,21 +541,35 @@ void drawCharge() {
 void drawBumpers() {
 	glPushMatrix(); {
 		glPushMatrix(); {
+			glDisable(GL_COLOR_MATERIAL);
 			glTranslatef( Lbump.getX(), Lbump.getY(), Lbump.getZ() );
+			glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+			glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+			glMaterialf(GL_FRONT, GL_SHININESS, low_shininess);
+			glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
 			GLUquadric *quad1;
 			quad1 = gluNewQuadric();
 			gluQuadricDrawStyle( quad1, GLU_FILL);
 			gluSphere( quad1 , 2.5, 10, 10);
 			gluDeleteQuadric(quad1);
+			glEnable(GL_COLOR_MATERIAL);
 		}; glPopMatrix();
 		
 		glPushMatrix(); {
+			glDisable(GL_COLOR_MATERIAL);
 			glTranslatef( Rbump.getX(), Rbump.getY(), Rbump.getZ() );
+			glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+			glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+			glMaterialf(GL_FRONT, GL_SHININESS, low_shininess);
+			glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
 			GLUquadric *quad2;
 			quad2 = gluNewQuadric();
 			gluQuadricDrawStyle( quad2, GLU_FILL);
 			gluSphere( quad2 , 2.5, 10, 10);
 			gluDeleteQuadric(quad2);
+			glEnable(GL_COLOR_MATERIAL);
 		}; glPopMatrix();
 	}; glPopMatrix();
 }
