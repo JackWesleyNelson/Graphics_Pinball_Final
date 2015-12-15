@@ -57,9 +57,9 @@ CFLAGS = -Wall -g
 
 INCPATH += -I./include
 
-LAB_INC_PATH = C:/CSCI441GFx/include
-LAB_LIB_PATH = C:/CSCI441GFx/lib
-LAB_BIN_PATH = C:/CSCI441GFx/bin
+LAB_INC_PATH = Z:/CSCI441GFx/include
+LAB_LIB_PATH = Z:/CSCI441GFx/lib
+LAB_BIN_PATH = Z:/CSCI441GFx/bin
 
 # if we are not building in the Lab
 ifeq ($(BUILDING_IN_LAB), 0)

@@ -112,6 +112,8 @@ ParticleSystem pSystem;
 bool fountainOn = true;
 
 //Ball object (can be replaced by system of balls for multi-ball system)
+GLuint ballShaderHandle;
+GLuint cubeMap;
 Ball gameBall;
 
 // Vector of circular objects on table
@@ -901,7 +903,16 @@ void renderScene(void) {
 			drawFigure();
 		}; glPopMatrix();
 	}
+	
+	glDisable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+	glUseProgram(ballShaderHandle);
+	
 	gameBall.draw();
+	
+	glUseProgram(0);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_LIGHTING);
 	
 	//push the back buffer to the screen
     glutSwapBuffers();
@@ -1393,6 +1404,23 @@ int main( int argc, char **argv ) {
 	particleShaderHandle = shade.setupShaders( "passThrough.v.glsl", "passThrough.f.glsl" );
 	pSystem = ParticleSystem( rules, particleShaderHandle, texs);
 
+	// Set up shader for gameBall
+	Shader ballShader = Shader();
+	ballShaderHandle = ballShader.setupShaders("reflectiveMapping.v.glsl", "reflectiveMapping.f.glsl");
+	// Link uniforms
+	glUseProgram(ballShaderHandle);
+	
+	cubeMap = SOIL_load_OGL_texture(
+		"textures/skybox_map.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS
+		| SOIL_FLAG_INVERT_Y
+		| SOIL_FLAG_COMPRESS_TO_DXT );
+	GLuint cubeLocation = glGetUniformLocation(ballShaderHandle, "cubeMap");
+	glUniform1i(cubeLocation, 0);
+	
+	glUseProgram(0);
 	
 	// Initialize gameBall
 	initialize();
