@@ -1,0 +1,5 @@
+# System Type, System Inputs
+# Type = F, Fountain. System Inputs:
+#    Emitter X, Y, Z, Cone Angle, Min Velocity, Max Velocity, Min Life, Max Life,
+#    Spawn Rate
+F,45,1,20,45,.05,0.1,50,80,10

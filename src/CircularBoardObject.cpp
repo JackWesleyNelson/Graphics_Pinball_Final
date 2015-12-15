@@ -1,3 +1,17 @@
+#ifdef __APPLE__			// if compiling on Mac OS
+	#include <GLUT/glew.h>
+	#include <GLUT/glut.h>
+	#include <OpenGL/gl.h>
+	#include <OpenGL/glu.h>
+    #include <GLUI/glui.h>			// include our GLUI header
+#else					// else compiling on Linux OS
+	#include <GL/glew.h>
+	#include <GL/glut.h>
+	#include <GL/gl.h>
+	#include <GL/glu.h>
+    #include <GL/glui.h>
+#endif
+
 #include "CircularBoardObject.h"
 #include <stdlib.h>
 
@@ -52,4 +66,16 @@ double CircularBoardObject::getRadius() {
 
 void CircularBoardObject::setRadius(double rt) {
 	radius = rt;
+}
+
+void CircularBoardObject::draw() {
+	glPushMatrix(); {
+		glTranslatef( x, 0, z );
+		glRotatef( 90, 1, 0, 0 );
+		GLUquadric *quad;
+		quad = gluNewQuadric();
+		gluQuadricDrawStyle( quad, GLU_FILL);
+		glutSolidTorus(radius, radius, 100, 100);
+		gluDeleteQuadric(quad);
+	}; glPopMatrix();
 }
