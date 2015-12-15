@@ -48,6 +48,9 @@ using namespace std;
 #include "MD5/md5model.h"
 #include "MD5/md5mesh.h"
 #include "MD5/md5anim.h"
+#include "Particle.h"
+#include "ParticleSystem.h"
+#include "Shader.h"
 
 // For some reason this math header fixes the abs() error
 #include <cmath>
@@ -94,6 +97,12 @@ GLuint textures[10];
 bool started, animating, charging, LbumpOn = false, RbumpOn = false;
 float charge = 0, score = 0;
 Point Lbump = Point( 42.5, 0.0, 10.0 ), Rbump = Point( 42.5, 0.0, -10.0 );
+
+//Particle System Variables
+GLuint particleShaderHandle;
+float rules[9];
+ParticleSystem pSystem;
+bool fountainOn = true;
 
 //Ball object (can be replaced by system of balls for multi-ball system)
 Ball gameBall;
@@ -593,6 +602,42 @@ void drawFigure() {
 	}
 }
 
+void drawFountain() {
+	glPushMatrix(); {
+		float radius=1;
+		float r=1;
+		float h=1;
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, textures[3]);
+		float t,s;
+		float i=0.05;
+	
+		GLUquadricObj *myQuad = gluNewQuadric();
+		
+		for(s=0.0;s<1.0;s+=i)
+		{
+			for(t=0.0;t<=1.0;t+=i)
+			{       
+				float r=((h-t)/h)*radius;
+				glBegin(GL_QUADS); {
+					glTexCoord2f(s,t);
+					glVertex3f(r*cos(2*M_PI*s),t,r*sin(2*M_PI*s));
+					
+					glTexCoord2f(s+i,t);
+					glVertex3f(r*cos(2*M_PI*(s+i)),t,r*sin(2*M_PI*(s+i)));
+					
+					glTexCoord2f(s+i,t+i);
+					glVertex3f(r*cos(2*M_PI*(s+i)),(t+i),r*sin(2*M_PI*(s+i)));
+					
+					glTexCoord2f(s,t+i);
+					glVertex3f(r*cos(2*M_PI*s),(t+i),r*sin(2*M_PI*s));
+				};glEnd();
+			}
+		}
+		glDisable(GL_TEXTURE_2D);
+	}; glPopMatrix();
+}
+
 //generateEnvironmentDL()
 //////////////////////////////////////////////////////////////
 //
@@ -623,6 +668,22 @@ void generateEnvironmentDL() {
 			//glEnable( GL_LIGHTING );
 			glUseProgram( 0 );
 		}; glPopMatrix();
+		
+		glPushMatrix(); {
+			glRotatef( -10, 0, 0, 1 );
+			glTranslatef( rules[0], rules[1]+5, rules[2]);
+			glRotatef( 180, 1, 0, 0 );
+			glScalef( 5, 5, 5 );
+			drawFountain();
+		}; glPopMatrix();
+	
+		glPushMatrix(); {
+			glRotatef( -10, 0, 0, 1 );
+			glTranslatef( rules[0], rules[1], rules[2]);
+			glScalef( 3, 3, 3 );
+			drawFountain();
+		}; glPopMatrix();
+	glEnable(GL_LIGHTING);
 	}; glEndList();
 }
 
@@ -797,6 +858,14 @@ void renderScene(void) {
 		drawTitle();
 	
 	glRotatef( -10, 0, 0, 1 );
+	glPushMatrix(); {
+		glDisable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D);
+		pSystem.draw();
+		glUseProgram( 0 );
+		glDisable(GL_TEXTURE_2D);
+		glEnable(GL_LIGHTING);
+	}; glPopMatrix();
 	drawScore();
 	//Draw everything on the table
 	drawCharge();
@@ -1075,6 +1144,21 @@ void myTimer( int value ) {
 	}
 	// End of collision detection and handling
 
+	//Particle System
+	Vector a = Vector(0, 0, 1);
+	Vector b = Vector( camera.getX(), camera.getY(), camera.getZ() );
+    Vector c = cross( a, b );
+	a.normalize();
+	b.normalize();
+	double dd = acos(dot( a, b )) * 180 / M_PI;
+	
+	glPushMatrix(); {
+	if(getRand() < rules[8]/10 && fountainOn)
+		pSystem.addParticle();
+		pSystem.changeRot( dd, c );
+		pSystem.update();
+	}; glPopMatrix();
+	
 	// redraw our display
     glutPostRedisplay();
 	glutSetWindow( winMain );
@@ -1143,6 +1227,28 @@ void registerCallbacks() {
     glutTimerFunc( 1000.0f / 60.0f, myTimer, 0 );
 }
 
+
+void loadParticleRules( char* filename ) {
+	fstream file;
+	file.open(filename);
+	string currentLine;
+	if (file.is_open()) {
+		while (getline(file, currentLine)) {
+			if(currentLine.at(0) != '#') {
+				currentLine.erase(0, currentLine.find(',', 0)+1);
+				for(int i=0; i<9; i++) {
+					int length = currentLine.find(',', 0);
+					string first = currentLine.substr(0, length);
+					rules[i] = atof(first.c_str());
+					if(i < 8)
+						currentLine.erase(0, length+1);
+				}
+			}
+		}
+		file.close();
+	}
+}
+
 // main() //////////////////////////////////////////////////////////////////////
 //
 //  Program entry point. Takes a single command line argument for our 
@@ -1150,7 +1256,7 @@ void registerCallbacks() {
 //
 ////////////////////////////////////////////////////////////////////////////////
 int main( int argc, char **argv ) {
-    
+    loadParticleRules( "particleRules.txt" );
 	glutInit( &argc, argv );
     glutInitDisplayMode( GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGB );
     glutInitWindowPosition( 50, 50 );
@@ -1222,8 +1328,50 @@ int main( int argc, char **argv ) {
 		SOIL_FLAG_MIPMAPS
 		| SOIL_FLAG_INVERT_Y
 		| SOIL_FLAG_COMPRESS_TO_DXT );
+		
+	textures[4] = SOIL_load_OGL_texture(
+		"textures/firework1.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS
+		| SOIL_FLAG_INVERT_Y
+		| SOIL_FLAG_COMPRESS_TO_DXT );
+		
+	textures[5] = SOIL_load_OGL_texture(
+		"textures/firework2.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS
+		| SOIL_FLAG_INVERT_Y
+		| SOIL_FLAG_COMPRESS_TO_DXT );
+		
+	textures[6] = SOIL_load_OGL_texture(
+		"textures/firework3.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS
+		| SOIL_FLAG_INVERT_Y
+		| SOIL_FLAG_COMPRESS_TO_DXT );
+	
+	textures[7] = SOIL_load_OGL_texture(
+		"textures/firework4.png",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS
+		| SOIL_FLAG_INVERT_Y
+		| SOIL_FLAG_COMPRESS_TO_DXT );
 	
 	table = new Object( "table.obj" );
+	
+	GLuint texs[4];
+	for(int i=0; i<4; i++) {
+		texs[i] = textures[i+4];
+	}
+	
+	Shader shade = Shader();
+	particleShaderHandle = shade.setupShaders( "passThrough.v.glsl", "passThrough.f.glsl" );
+	pSystem = ParticleSystem( rules, particleShaderHandle, texs);
+
 	
 	// Initialize gameBall
 	initialize();

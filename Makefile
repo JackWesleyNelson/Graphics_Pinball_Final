@@ -22,7 +22,7 @@
 ########################################
 
 TARGET = Pinball
-OBJECTS = main.o src/Object.o src/Material.o src/Ball.o src/Point.o src/Vector.o src/PointBase.o src/Camera.o src/CircularBoardObject.o src/RectangularBoardObject.o src/md5anim.o src/md5mesh.o src/Shader_Utils.o src/Face.o src/Material.o src/Matrix.o src/Object.o src/Vector.o
+OBJECTS = main.o src/Object.o src/Material.o src/Ball.o src/Point.o src/Vector.o src/PointBase.o src/Camera.o src/CircularBoardObject.o src/RectangularBoardObject.o src/md5anim.o src/md5mesh.o src/Shader_Utils.o src/Face.o src/Material.o src/Matrix.o src/Object.o src/Vector.o src/Shader.o src/Particle.o src/ParticleSystem.o
 
 LOCAL_INC_PATH = /Users/jpaone/Desktop/include
 LOCAL_LIB_PATH = /Users/jpaone/Desktop/lib
