@@ -10,15 +10,17 @@
 #include <stdlib.h>
 
 Ball::Ball() {
-    radius = 0.5;
+    radius = 2.0f;
     location = Point(0,0,0);
     direction = Vector(1,0,0);
     _rotation = 0;
+	velocity = 0.1;
     _color = Point(rand() * 100 % 50 / 100.0 + 0.5, rand() * 100 % 50 / 100.0 + 0.5, rand() * 100 % 50 / 100.0 + 0.5);
 }
 
 Ball::Ball( Point l, Vector d, double r ) : radius(r), location(l), direction(d) {
-    _rotation = 0;
+    velocity = 0.1;
+	_rotation = 0;
     _color = Point(rand() * 100 % 50 / 100.0 + 0.5, rand() * 100 % 50 / 100.0 + 0.5, rand() * 100 % 50 / 100.0 + 0.5);
 }
 
@@ -34,7 +36,7 @@ void Ball::draw() {
         glTranslatef( location );
         glTranslatef( 0, radius, 0 );
         glRotatef( _rotation, rotationAxis );
-        glColor3f( _color.getX(), _color.getY(), _color.getZ() );
+        //glColor3f( _color.getX(), _color.getY(), _color.getZ() );
         
         for( float theta = 0; theta < 6.28; theta += thetaStep ) {
             for( float phi = -3.14; phi < 3.14; phi += phiStep ) {
@@ -78,8 +80,17 @@ void Ball::draw() {
     }; glPopMatrix();
 }
 
+void Ball::reflect( Vector n ) {
+	moveBackward();
+	Vector outVector = direction - (2 * dot(direction, n)) * n;
+	outVector.normalize();
+	direction = outVector;
+	velocity *= 0.75;
+	moveForward();
+}
+
 void Ball::moveForward() {
-    location += direction*0.1;
+    location += direction*velocity;
     _rotation -= ((360.0f / 64.0f));
     if( _rotation < 0 ) {
         _rotation += 360;
@@ -87,7 +98,7 @@ void Ball::moveForward() {
 }
 
 void Ball::moveBackward() {
-    location -= direction*0.1;
+    location -= direction*velocity;
     _rotation += ((360.0f / 64.0f));
     if( _rotation > 360 ) {
         _rotation -= 360;
