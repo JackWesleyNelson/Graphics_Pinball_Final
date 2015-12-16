@@ -905,7 +905,10 @@ void renderScene(void) {
 	}
 	
 	glDisable(GL_LIGHTING);
-	glEnable(GL_TEXTURE_2D);
+    glEnable( GL_TEXTURE_2D );
+    glColor4f(1,1,1,1);
+    glBindTexture(GL_TEXTURE_2D, cubeMap);
+	
 	glUseProgram(ballShaderHandle);
 	
 	gameBall.draw();
@@ -1411,7 +1414,7 @@ int main( int argc, char **argv ) {
 	glUseProgram(ballShaderHandle);
 	
 	cubeMap = SOIL_load_OGL_texture(
-		"textures/skybox_map.png",
+		"textures/table_skin3.png",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS

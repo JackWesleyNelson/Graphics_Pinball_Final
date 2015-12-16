@@ -1,8 +1,11 @@
 uniform samplerCube cubeMap;
-varying vec3 reflect;
+
+varying vec3 normal;
+varying vec3 eyeDir;
 
 void main() {
-	vec4 outputColor = vec4(textureCube(cubeMap, reflect));
-	
-	gl_FragColor = clamp(outputColor, 0.0, 1.0);
+	vec3 reflectedDirection = normalize(reflect(eyeDir, normalize(normal)));
+	//reflectedDirection.y = -reflectedDirection.y;
+	vec4 temp_FG = textureCube(cubeMap, reflectedDirection);
+	gl_FragColor = temp_FG;
 } 
