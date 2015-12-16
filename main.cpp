@@ -39,7 +39,7 @@
 			PlaySound(TEXT("sounds/Fire.wav"), NULL, SND_ASYNC|SND_FILENAME);
 		break;
 		case 6  :
-			PlaySound(TEXT("sounds/Bounce.wav"), NULL, SND_ASYNC|SND_FILENAME);
+			//PlaySound(TEXT("sounds/Bounce.wav"), NULL, SND_ASYNC|SND_FILENAME);
 		break;
 		}
 	}
@@ -520,9 +520,6 @@ void drawScore() {
 	char title[64] = "SCORE:";
 	char s[6];
 	sprintf(s, "%f", score);
-	char title2[64] = "LIVES:";
-	char s2[1];
-	sprintf(s2, "%f", lives);
 	
 	glPushMatrix(); {
 	
@@ -543,6 +540,9 @@ void drawScore() {
 				glutStrokeCharacter(GLUT_STROKE_ROMAN, s[i]);
 		}; glPopMatrix();
 		
+		char title2[64] = "LIVES:";
+		char s2[1];
+		sprintf(s2, "%f", lives);
 		glTranslatef(0, -10, 0);
 		glPushMatrix(); {
 			glScalef(.05, .05, .05);
@@ -962,6 +962,7 @@ void renderScene(void) {
 	//glActiveTexture(GL_TEXTURE0);
 	//glBindTexture(GL_TEXTURE_2D, grassTexHandle);
 	
+	if(started)
 	gameBall.draw();
 	
 	//glUseProgram(0);
@@ -1159,9 +1160,10 @@ void moveBall() {
 			normal_ji.normalize();
 			gameBall.velocity += 2;			
 			gameBall.reflect(normal_ji);
-			score+=10;
-			if(started)
-			playMusic(3);
+			if(started) {
+				score+=10;
+				playMusic(3);
+			}
 		}
 	}
 		
@@ -1201,7 +1203,7 @@ void moveBall() {
 		}
 	}
 	
-	if(gameBall.location.getX() > tableX) {
+	if(gameBall.location.getX() > tableX && started) {
 		lives --;
 		initialize();
 		if(lives <= 0.0) {
@@ -1251,7 +1253,7 @@ void myTimer( int value ) {
 		checkBumpers( 0 );
 	}
 	
-	if (ballEnabled) {
+	if (ballEnabled && started) {
 		moveBall();
 	}
 	// End of collision detection and handling

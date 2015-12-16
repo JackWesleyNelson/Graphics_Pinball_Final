@@ -23,7 +23,7 @@ File format description:  For the obstacle input file, each line will contain:
   words, the specified objects will be line-separated.
 
 Responsibilities and contributions:
-  Stephen Unger:
+  Stephen Unger: Collision detection, physics handling, pinball table initial setup and mechanisms, sound, particle system, textures, cameras
   Jack Nelson:
   Ryan Porter:  Collision detection, physics handling, Makefile debugging, some work on shaders
   
