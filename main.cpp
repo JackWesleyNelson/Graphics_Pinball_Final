@@ -904,7 +904,7 @@ void renderScene(void) {
 		}; glPopMatrix();
 	}
 	
-	glDisable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
     glEnable( GL_TEXTURE_2D );
     glColor4f(1,1,1,1);
     glBindTexture(GL_TEXTURE_2D, cubeMap);
@@ -912,13 +912,13 @@ void renderScene(void) {
 	glUseProgram(ballShaderHandle);
 	
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, grassTexHandle);
+	//glBindTexture(GL_TEXTURE_2D, grassTexHandle);
 	
 	gameBall.draw();
 	
 	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_LIGHTING);
+	glDisable(GL_LIGHTING);
 	
 	//push the back buffer to the screen
     glutSwapBuffers();
