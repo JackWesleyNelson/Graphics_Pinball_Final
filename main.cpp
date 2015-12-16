@@ -7,12 +7,42 @@
 	#include <OpenGL/gl.h>
 	#include <OpenGL/glu.h>
     #include <GLUI/glui.h>			// include our GLUI header
+	void playMusic() {
+		return;								//Sorry Applers, no music function call 3:
+	}
 #else					// else compiling on Linux OS
 	#include <GL/glew.h>
 	#include <GL/glut.h>
 	#include <GL/gl.h>
 	#include <GL/glu.h>
     #include <GL/glui.h>
+	#include <windows.h>					//import used to play .wav files on Windows
+	#include <mmsystem.h>					//import used to play .wav files on Windows
+	void playMusic(int x) {
+		switch(x){
+		case 0  :
+			PlaySound(TEXT("sounds/Song.wav"), NULL, SND_ASYNC|SND_FILENAME|SND_LOOP);
+		break;
+		case 1  :
+			PlaySound(TEXT("sounds/Flipper.wav"), NULL, SND_ASYNC|SND_FILENAME);
+		break;
+		case 2  :
+			PlaySound(TEXT("sounds/NewBall.wav"), NULL, SND_ASYNC|SND_FILENAME);
+		break;
+		case 3  :
+			PlaySound(TEXT("sounds/Hit.wav"), NULL, SND_ASYNC|SND_FILENAME);
+		break;
+		case 4  :
+			PlaySound(TEXT("sounds/Charge.wav"), NULL, SND_ASYNC|SND_FILENAME);
+		break;
+		case 5  :
+			PlaySound(TEXT("sounds/Fire.wav"), NULL, SND_ASYNC|SND_FILENAME);
+		break;
+		case 6  :
+			PlaySound(TEXT("sounds/Bounce.wav"), NULL, SND_ASYNC|SND_FILENAME);
+		break;
+		}
+	}
 #endif
 
 #include <SOIL/SOIL.h>
@@ -910,16 +940,16 @@ void renderScene(void) {
     glColor4f(1,1,1,1);
     glBindTexture(GL_TEXTURE_2D, cubeMap);
 	
-	glUseProgram(ballShaderHandle);
+	//glUseProgram(ballShaderHandle);
 	
-	glActiveTexture(GL_TEXTURE0);
+	//glActiveTexture(GL_TEXTURE0);
 	//glBindTexture(GL_TEXTURE_2D, grassTexHandle);
 	
 	gameBall.draw();
 	
-	glUseProgram(0);
-	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_LIGHTING);
+	//glUseProgram(0);
+	//glDisable(GL_TEXTURE_2D);
+	//glEnable(GL_LIGHTING);
 	
 	//push the back buffer to the screen
     glutSwapBuffers();
@@ -946,6 +976,8 @@ void cleanup() {
 void keyUp( unsigned char key, int mouseX, int mouseY ) {
 	if(key == 32) {
 		charging = false;
+		if(started) 
+			playMusic(5);
 		if(gameBall.location.getX() > tableX-10 && gameBall.location.getZ() < -tableZ+4 ) {
 			gameBall.direction = Vector( 1.0, 0.0, 0.0 );
 			gameBall.velocity += charge*3.0;
@@ -976,12 +1008,16 @@ void normalKeysDown(unsigned char key, int x, int y) {
 	}
 	else {
 		if(key == 32) {
+			if(!charging)
+				playMusic(4);
 			charging = true;
 		}
 		if (key == 'z' || key == 'Z') {
+			playMusic(1);
 			LbumpOn = true;
 		}
 		if (key == '/') {
+			playMusic(1);
 			RbumpOn = true;
 		}
 	}
@@ -1046,34 +1082,45 @@ void moveBall() {
 	
 	if (gameBall.location.getX() > tableX-rad && (gameBall.location.getZ() > 5 || gameBall.location.getZ() < -5)) { // Declare vars !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		gameBall.reflect(Vector (-1, 0, 0));
+		playMusic(6);
 	}
 	else if (gameBall.location.getX() < -tableX+rad) {
 		gameBall.reflect(Vector (1, 0, 0));
+		playMusic(6);
 	}
 	else if (gameBall.location.getZ() > tableZ-rad) {
 		gameBall.reflect(Vector (0, 0, -1));
+		playMusic(6);
 	}
 	else if (gameBall.location.getZ() < -tableZ+rad) {
 		gameBall.reflect(Vector (0, 0, 1));
+		playMusic(6);
 	}
 	else if(gameBall.location.getX() < -tableX+5+rad && gameBall.location.getZ() < -tableZ+5+rad) {
 		gameBall.reflect(Vector (1, 0, 1));
+		playMusic(6);
 	}
 	else if(gameBall.location.getX() > -tableX+15 /*&& gameBall.location.getX() < tableX-20*/) {
-		if( gameBall.location.getZ() < -tableZ+5 && gameBall.location.getZ() > -tableZ+2)
+		if( gameBall.location.getZ() < -tableZ+5 && gameBall.location.getZ() > -tableZ+2) {
 			gameBall.reflect(Vector(0, 0, -1));
-		else if( gameBall.location.getZ() < -tableZ+8 && gameBall.location.getZ() > -tableZ+5)
+			playMusic(6);
+		}
+		else if( gameBall.location.getZ() < -tableZ+8 && gameBall.location.getZ() > -tableZ+5) {
 			gameBall.reflect(Vector(0, 0, 1));
+			playMusic(6);
+		}
 	}
 	for(int i=23; i<=45; i++) {
 		if(gameBall.location.getX() > i && gameBall.location.getZ() > 48-i) {
 			gameBall.reflect(Vector(-1, 0, -1));
+			playMusic(6);
 			break;
 		}
 	}
 	for(int i=28; i<=45; i++) {
 		if(gameBall.location.getX() > i && gameBall.location.getZ() < (-48+i) && gameBall.location.getZ() > -20){
 			gameBall.reflect(Vector(-1, 0, 1));
+			playMusic(6);
 			break;
 		}
 	}
@@ -1096,6 +1143,7 @@ void moveBall() {
 			gameBall.velocity += 2;			
 			gameBall.reflect(normal_ji);
 			score+=10;
+			playMusic(3);
 		}
 	}
 		
@@ -1150,6 +1198,8 @@ void myTimer( int value ) {
 			globalRadius = 110;
 			animating = false;
 			started = true;
+			playMusic(2);
+			initialize();
 		}
 		camera.setRadius(globalRadius);
 		camera.recomputeOrientation();
@@ -1429,9 +1479,6 @@ int main( int argc, char **argv ) {
 	
 	glUseProgram(0);
 	
-	// Initialize gameBall
-	initialize();
-	
 	// Temporary initialization; actual initialization will be done with board data
 	circular_objects.push_back(CircularBoardObject(0, 0, 0, 2.0));
 	//circular_objects.push_back(CircularBoardObject(10, 0, 10, 2.5));
@@ -1442,6 +1489,7 @@ int main( int argc, char **argv ) {
 	animating = false;
     generateEnvironmentDL();
 	
+	playMusic(0);
 	// and enter the GLUT loop, never to exit.
     glutMainLoop();
 

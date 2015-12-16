@@ -101,6 +101,7 @@ ifeq ($(USING_GLUI), 1)
     LIBS += -lglui
 endif
 
+	LIBS += -lwinmm
 #############################
 ## SETUP SOIL 
 #############################
