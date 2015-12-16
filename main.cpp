@@ -911,6 +911,9 @@ void renderScene(void) {
 	
 	glUseProgram(ballShaderHandle);
 	
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, grassTexHandle);
+	
 	gameBall.draw();
 	
 	glUseProgram(0);
