@@ -904,7 +904,7 @@ void renderScene(void) {
 		}; glPopMatrix();
 	}
 	
-	glEnable(GL_LIGHTING);
+	glDisable(GL_LIGHTING);
     glEnable( GL_TEXTURE_2D );
     glColor4f(1,1,1,1);
     glBindTexture(GL_TEXTURE_2D, cubeMap);
@@ -918,7 +918,7 @@ void renderScene(void) {
 	
 	glUseProgram(0);
 	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 	
 	//push the back buffer to the screen
     glutSwapBuffers();
