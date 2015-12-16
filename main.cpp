@@ -112,6 +112,7 @@ ParticleSystem pSystem;
 bool fountainOn = true;
 
 //Ball object (can be replaced by system of balls for multi-ball system)
+//iridescent reflection for ball received from http://stackoverflow.com/questions/11794277/glsl-shader-for-glossy-specular-reflections-on-an-cubemapped-surface
 GLuint ballShaderHandle;
 GLuint cubeMap;
 Ball gameBall;
