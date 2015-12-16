@@ -132,7 +132,7 @@ float low_shininess = 5.0f;
 
 //Game Variables
 bool started, animating, charging, LbumpOn = false, RbumpOn = false;
-float charge = 0, score = 0;
+float charge = 0, score = 0.0, lives = 3;
 Point Lbump = Point( 42.5, 0.0, 10.0 ), Rbump = Point( 42.5, 0.0, -10.0 );
 
 //Particle System Variables
@@ -170,6 +170,7 @@ float getRand() {
 
 //Initialize a new game ball
 void initialize() {
+	playMusic(2);
 	gameBall = Ball( Point(tableX-20, 0.0, -tableZ+2.0), Vector(0.1, 0.0, 0.0), 2.0 );
 	gameBall.direction = Vector( 1, 0, 0 );
 	gameBall.velocity = 0.0;
@@ -519,6 +520,9 @@ void drawScore() {
 	char title[64] = "SCORE:";
 	char s[6];
 	sprintf(s, "%f", score);
+	char title2[64] = "LIVES:";
+	char s2[1];
+	sprintf(s2, "%f", lives);
 	
 	glPushMatrix(); {
 	
@@ -532,11 +536,24 @@ void drawScore() {
 			for (int c = 0; title[c] != 0; ++c)
 				glutStrokeCharacter(GLUT_STROKE_ROMAN, title[c]);
 		}; glPopMatrix();
-		glTranslatef(25, 0, 0);
 		glPushMatrix(); {
+			glTranslatef(25, 0, 0);
 			glScalef(.05, .05, .05);
 			for(int i = 0; i < 6; i++)
 				glutStrokeCharacter(GLUT_STROKE_ROMAN, s[i]);
+		}; glPopMatrix();
+		
+		glTranslatef(0, -10, 0);
+		glPushMatrix(); {
+			glScalef(.05, .05, .05);
+			for (int c = 0; title2[c] != 0; ++c)
+				glutStrokeCharacter(GLUT_STROKE_ROMAN, title2[c]);
+		}; glPopMatrix();
+		glTranslatef(25, 0, 0);
+		glPushMatrix(); {
+			glScalef(.05, .05, .05);
+			for(int i = 0; i < 1; i++)
+				glutStrokeCharacter(GLUT_STROKE_ROMAN, s2[i]);
 		}; glPopMatrix();
 	}; glPopMatrix();
 	glEnable(GL_LIGHTING);
@@ -940,16 +957,16 @@ void renderScene(void) {
     glColor4f(1,1,1,1);
     glBindTexture(GL_TEXTURE_2D, cubeMap);
 	
-	glUseProgram(ballShaderHandle);
+	//glUseProgram(ballShaderHandle);
 	
-	glActiveTexture(GL_TEXTURE0);
+	//glActiveTexture(GL_TEXTURE0);
 	//glBindTexture(GL_TEXTURE_2D, grassTexHandle);
 	
 	gameBall.draw();
 	
-	glUseProgram(0);
-	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_LIGHTING);
+	//glUseProgram(0);
+	//glDisable(GL_TEXTURE_2D);
+	//glEnable(GL_LIGHTING);
 	
 	//push the back buffer to the screen
     glutSwapBuffers();
@@ -1143,6 +1160,7 @@ void moveBall() {
 			gameBall.velocity += 2;			
 			gameBall.reflect(normal_ji);
 			score+=10;
+			if(started)
 			playMusic(3);
 		}
 	}
@@ -1183,8 +1201,14 @@ void moveBall() {
 		}
 	}
 	
-	if(gameBall.location.getX() > tableX)
+	if(gameBall.location.getX() > tableX) {
+		lives --;
 		initialize();
+		if(lives <= 0.0) {
+			lives = 3;
+			score = 0.0;
+		}
+	}
 }
 // myTimer() ////////////////////////////////////////////////////////////////////
 //
@@ -1198,7 +1222,6 @@ void myTimer( int value ) {
 			globalRadius = 110;
 			animating = false;
 			started = true;
-			playMusic(2);
 			initialize();
 		}
 		camera.setRadius(globalRadius);
@@ -1507,17 +1530,14 @@ int main( int argc, char **argv ) {
 	glUniform1i(cubeLocation, 0);
 	
 	glUseProgram(0);
-	
 	//read in the obstacles from a file
 	readInObstacles(argv[1]);
 	
 	started = false;
 	animating = false;
     generateEnvironmentDL();
-	
 	playMusic(0);
 	// and enter the GLUT loop, never to exit.
     glutMainLoop();
-
     return(0);
 }
