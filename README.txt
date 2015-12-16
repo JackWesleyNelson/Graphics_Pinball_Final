@@ -17,7 +17,10 @@ Usage:  Use the 'z' amd '/' keys to hit the left and right slapper, respectively
 
 Instructions:  Use 'make' with no arguments to compile.
 
-File format description:  
+File format description:  For the obstacle input file, each line will contain:
+    <x_coordinate>,<y_coordinate>,<z_coordinate>,<radius>
+  for each object specified.  Objects will each be specified per line; in other
+  words, the specified objects will be line-separated.
 
 Responsibilities and contributions:
   Stephen Unger:

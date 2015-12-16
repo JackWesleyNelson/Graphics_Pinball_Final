@@ -940,16 +940,16 @@ void renderScene(void) {
     glColor4f(1,1,1,1);
     glBindTexture(GL_TEXTURE_2D, cubeMap);
 	
-	//glUseProgram(ballShaderHandle);
+	glUseProgram(ballShaderHandle);
 	
-	//glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);
 	//glBindTexture(GL_TEXTURE_2D, grassTexHandle);
 	
 	gameBall.draw();
 	
-	//glUseProgram(0);
-	//glDisable(GL_TEXTURE_2D);
-	//glEnable(GL_LIGHTING);
+	glUseProgram(0);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_LIGHTING);
 	
 	//push the back buffer to the screen
     glutSwapBuffers();
@@ -1338,6 +1338,29 @@ void loadParticleRules( char* filename ) {
 	}
 }
 
+void readInObstacles(string filename){
+	string line;
+	ifstream myfile(filename.c_str());
+	if(myfile.is_open()){
+		while(getline(myfile, line)){
+			std::vector<int> vect;
+			std::stringstream ss(line);
+			double i;
+			while (ss >> i)
+			{
+				vect.push_back(i);
+				if (ss.peek() == ',')
+					ss.ignore();
+			}
+			circular_objects.push_back(CircularBoardObject(vect[0], vect[1], vect[2], vect[3]));
+		}
+		myfile.close();
+	}
+	else{
+		cout << "unable to open obstacles file";	
+	} 
+}
+
 // main() //////////////////////////////////////////////////////////////////////
 //
 //  Program entry point. Takes a single command line argument for our 
@@ -1345,6 +1368,12 @@ void loadParticleRules( char* filename ) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 int main( int argc, char **argv ) {
+	
+	if (argc != 2) {
+		std::cerr << "Usage: keyToTheKingdom.exe <obstacles.txt>" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
     loadParticleRules( "particleRules.txt" );
 	glutInit( &argc, argv );
     glutInitDisplayMode( GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGB );
@@ -1479,12 +1508,9 @@ int main( int argc, char **argv ) {
 	
 	glUseProgram(0);
 	
-	// Temporary initialization; actual initialization will be done with board data
-	circular_objects.push_back(CircularBoardObject(0, 0, 0, 2.0));
-	//circular_objects.push_back(CircularBoardObject(10, 0, 10, 2.5));
-	//circular_objects.push_back(CircularBoardObject(-10, 0, -10, 3.0));
-	//RectangularBoardObject tRBO(8, 0, 8, 4, 4);
-	//rectangular_objects.push_back(tRBO);
+	//read in the obstacles from a file
+	readInObstacles(argv[1]);
+	
 	started = false;
 	animating = false;
     generateEnvironmentDL();
